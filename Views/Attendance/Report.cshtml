@@ -1,0 +1,103 @@
+@{
+    ViewData["Title"] = "Attendance Report";
+    var records = ViewBag.Records as List<SchoolManagementSystem.Models.Attendance> ?? new();
+    var cls = ViewBag.ClassName as string ?? "";
+    var section = ViewBag.Section as string ?? "";
+    var from = (DateTime)(ViewBag.FromDate ?? DateTime.Today.AddDays(-30));
+    var to = (DateTime)(ViewBag.ToDate ?? DateTime.Today);
+}
+<div class="page-header">
+    <div>
+        <h1><i class="fas fa-chart-bar me-2 text-primary"></i>Attendance Report</h1>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/Attendance">Attendance</a></li>
+            <li class="breadcrumb-item active">Report</li>
+        </ol></nav>
+    </div>
+    <button onclick="window.print()" class="btn btn-outline-secondary d-print-none"><i class="fas fa-print me-2"></i>Print</button>
+</div>
+
+<div class="card mb-4 d-print-none">
+    <div class="card-body">
+        <form method="get" action="/Attendance/Report" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Class</label>
+                <select name="classId" class="form-select">
+                    <option value="">All Classes</option>
+                    @foreach (var c in ViewBag.Classes as List<SchoolManagementSystem.Models.Class> ?? new())
+                    { <option value="@c.Id">@c.Name</option> }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">From Date</label>
+                <input name="from" type="date" class="form-control" value="@from.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">To Date</label>
+                <input name="to" type="date" class="form-control" value="@to.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter me-2"></i>Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (records.Any())
+{
+    var totalDays = records.Count;
+    var allRecords = records.SelectMany(r => r.Records).ToList();
+    var present = allRecords.Count(r => r.Status == "Present");
+    var absent = allRecords.Count(r => r.Status == "Absent");
+    var late = allRecords.Count(r => r.Status == "Late");
+
+    <div class="row g-3 mb-4">
+        <div class="col-sm-3"><div class="stat-card"><div class="stat-icon blue"><i class="fas fa-calendar"></i></div><div><div class="stat-value">@totalDays</div><div class="stat-label">Total Days</div></div></div></div>
+        <div class="col-sm-3"><div class="stat-card"><div class="stat-icon green"><i class="fas fa-check"></i></div><div><div class="stat-value">@present</div><div class="stat-label">Present</div></div></div></div>
+        <div class="col-sm-3"><div class="stat-card"><div class="stat-icon red"><i class="fas fa-times"></i></div><div><div class="stat-value">@absent</div><div class="stat-label">Absent</div></div></div></div>
+        <div class="col-sm-3"><div class="stat-card"><div class="stat-icon orange"><i class="fas fa-clock"></i></div><div><div class="stat-value">@late</div><div class="stat-label">Late</div></div></div></div>
+    </div>
+
+    <div class="table-card">
+        <div class="table-header"><h6 class="fw-bold mb-0">Daily Attendance — @cls @(section)</h6></div>
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead><tr><th>DATE</th><th>PRESENT</th><th>ABSENT</th><th>LATE</th><th>LEAVE</th><th>TOTAL</th><th>%</th></tr></thead>
+                <tbody>
+                    @foreach (var rec in records.OrderByDescending(r => r.Date))
+                    {
+                        var p = rec.Records.Count(r => r.Status == "Present");
+                        var ab = rec.Records.Count(r => r.Status == "Absent");
+                        var lt = rec.Records.Count(r => r.Status == "Late");
+                        var lv = rec.Records.Count(r => r.Status == "Leave");
+                        var total = rec.Records.Count;
+                        var pct = total > 0 ? (p * 100.0 / total) : 0;
+                        <tr>
+                            <td class="fw-semibold">@rec.Date.ToString("dd MMM yyyy, ddd")</td>
+                            <td class="text-success fw-semibold">@p</td>
+                            <td class="text-danger fw-semibold">@ab</td>
+                            <td class="text-warning fw-semibold">@lt</td>
+                            <td class="text-info fw-semibold">@lv</td>
+                            <td>@total</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="progress flex-grow-1" style="height:6px;width:60px;">
+                                        <div class="progress-bar @(pct >= 75 ? "bg-success" : "bg-danger")" style="width:@pct%"></div>
+                                    </div>
+                                    <span class="small">@pct.ToString("F0")%</span>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+else
+{
+    <div class="text-center py-5 text-muted card"><div class="card-body">
+        <i class="fas fa-calendar-times fa-3x mb-3 d-block opacity-25"></i>
+        <h5>No attendance records found for selected criteria</h5>
+    </div></div>
+}

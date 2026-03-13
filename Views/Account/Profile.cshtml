@@ -1,0 +1,80 @@
+@model SchoolManagementSystem.Models.User
+@{
+    ViewData["Title"] = "My Profile";
+}
+<div class="page-header">
+    <div>
+        <h1><i class="fas fa-user-circle me-2 text-primary"></i>My Profile</h1>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/Dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item active">Profile</li>
+        </ol></nav>
+    </div>
+</div>
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card text-center">
+            <div class="card-body py-4">
+                <div class="avatar avatar-lg mx-auto mb-3" style="width:80px;height:80px;font-size:2rem;border-radius:20px;">
+                    @Model?.FirstName.Substring(0,1).ToUpper()
+                </div>
+                <h4 class="fw-bold">@Model?.FullName</h4>
+                <div class="text-muted mb-2">@Model?.Email</div>
+                <span class="badge bg-primary">@Model?.Role</span>
+                <div class="text-muted small mt-3">
+                    Last login: @Model?.LastLogin.ToString("dd MMM yyyy, hh:mm tt")
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header"><i class="fas fa-lock me-2 text-primary"></i>Change Password</div>
+            <div class="card-body">
+                <form asp-controller="Account" asp-action="ChangePassword" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Current Password</label>
+                            <input name="CurrentPassword" type="password" class="form-control" required/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">New Password</label>
+                            <input name="NewPassword" type="password" class="form-control" required minlength="8"
+                                   placeholder="Minimum 8 characters"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Confirm New Password</label>
+                            <input name="ConfirmNewPassword" type="password" class="form-control" required/>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-key me-2"></i>Change Password
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><i class="fas fa-shield-alt me-2 text-primary"></i>Account Security</div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <div>
+                        <div class="fw-semibold">Two-Factor Authentication</div>
+                        <div class="text-muted small">Add extra security to your account</div>
+                    </div>
+                    <span class="badge bg-secondary">Coming Soon</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center py-2">
+                    <div>
+                        <div class="fw-semibold">Login History</div>
+                        <div class="text-muted small">View your recent login activity</div>
+                    </div>
+                    <span class="badge bg-secondary">Coming Soon</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

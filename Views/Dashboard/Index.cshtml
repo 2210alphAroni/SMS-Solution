@@ -1,0 +1,219 @@
+@model SchoolManagementSystem.Services.DashboardStats
+@{
+    ViewData["Title"] = "Dashboard";
+    var tenant = ViewBag.Tenant as SchoolManagementSystem.Models.Tenant;
+}
+<div class="page-header">
+    <div>
+        <h1><i class="fas fa-tachometer-alt me-2 text-primary"></i>Dashboard</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active">Overview</li>
+            </ol>
+        </nav>
+    </div>
+    <div>
+        <span class="badge bg-primary fs-6 py-2 px-3">
+            <i class="fas fa-calendar me-1"></i>@DateTime.Now.ToString("dddd, dd MMMM yyyy")
+        </span>
+    </div>
+</div>
+
+<!-- Welcome Banner -->
+<div class="card border-0 mb-4" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-radius:16px;">
+    <div class="card-body p-4">
+        <div class="row align-items-center">
+            <div class="col">
+                <h4 class="fw-bold mb-1">Welcome back, @User.Identity!.Name! 👋</h4>
+                <p class="mb-0 opacity-75">@tenant?.SchoolName | @DateTime.Now.ToString("MMMM yyyy") Academic Period</p>
+            </div>
+            <div class="col-auto">
+                <div class="d-flex gap-2">
+                    <a href="/Attendance" class="btn btn-light btn-sm fw-semibold">
+                        <i class="fas fa-clipboard-check me-1"></i>Take Attendance
+                    </a>
+                    <a href="/Notices/Create" class="btn btn-light btn-sm fw-semibold">
+                        <i class="fas fa-plus me-1"></i>New Notice
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon purple"><i class="fas fa-user-graduate"></i></div>
+            <div>
+                <div class="stat-value">@Model.TotalStudents</div>
+                <div class="stat-label">Total Students</div>
+                <div class="stat-change up"><i class="fas fa-arrow-up me-1"></i>Active enrollment</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="fas fa-chalkboard-teacher"></i></div>
+            <div>
+                <div class="stat-value">@Model.TotalTeachers</div>
+                <div class="stat-label">Total Teachers</div>
+                <div class="stat-change up"><i class="fas fa-arrow-up me-1"></i>All active</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon blue"><i class="fas fa-door-open"></i></div>
+            <div>
+                <div class="stat-value">@Model.TotalClasses</div>
+                <div class="stat-label">Total Classes</div>
+                <div class="stat-change up"><i class="fas fa-check me-1"></i>All operational</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon orange"><i class="fas fa-money-bill-wave"></i></div>
+            <div>
+                <div class="stat-value">৳@Model.FeeCollectedThisMonth.ToString("N0")</div>
+                <div class="stat-label">Fee This Month</div>
+                <div class="stat-change up"><i class="fas fa-arrow-up me-1"></i>Collected</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Recent Notices -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <span><i class="fas fa-bullhorn text-primary me-2"></i>Recent Notices</span>
+                <a href="/Notices" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                @if (Model.RecentNotices.Any())
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var notice in Model.RecentNotices)
+                        {
+                            <li class="list-group-item px-4 py-3">
+                                <div class="d-flex gap-3 align-items-start">
+                                    <div class="mt-1">
+                                        <span class="badge @(notice.Category == "Emergency" ? "bg-danger" : notice.Category == "Exam" ? "bg-warning text-dark" : "bg-primary") rounded-pill">
+                                            @notice.Category
+                                        </span>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-semibold small">@notice.Title</div>
+                                        <div class="text-muted x-small">@notice.CreatedAt.ToString("MMM dd, yyyy")</div>
+                                    </div>
+                                    @if (notice.IsPinned) { <i class="fas fa-thumbtack text-warning"></i> }
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-bell-slash fa-2x mb-3 d-block opacity-25"></i>
+                        No notices yet. <a href="/Notices/Create" class="text-primary">Create one</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Events -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <span><i class="fas fa-calendar-alt text-primary me-2"></i>Upcoming Events</span>
+                <button class="btn btn-sm btn-outline-primary">View Calendar</button>
+            </div>
+            <div class="card-body p-0">
+                @if (Model.UpcomingEvents.Any())
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var ev in Model.UpcomingEvents)
+                        {
+                            <li class="list-group-item px-4 py-3">
+                                <div class="d-flex gap-3 align-items-center">
+                                    <div class="text-center" style="min-width:44px;background:var(--bg-body);border-radius:8px;padding:8px;">
+                                        <div class="fw-bold text-primary" style="font-size:.75rem;">@ev.StartDate.ToString("MMM").ToUpper()</div>
+                                        <div class="fw-bold fs-5">@ev.StartDate.Day</div>
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold small">@ev.Title</div>
+                                        <div class="text-muted x-small"><i class="fas fa-map-marker-alt me-1"></i>@(ev.Location ?? "TBD")</div>
+                                    </div>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-calendar-times fa-2x mb-3 d-block opacity-25"></i>
+                        No upcoming events scheduled
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header"><span><i class="fas fa-bolt text-primary me-2"></i>Quick Actions</span></div>
+            <div class="card-body">
+                <div class="row g-3">
+                    @foreach(var action in new[]{
+                        ("/Students/Create","fa-user-plus","green","Add Student","Register new student"),
+                        ("/Teachers/Create","fa-user-tie","blue","Add Teacher","Add new staff member"),
+                        ("/Attendance","fa-clipboard-check","purple","Take Attendance","Mark today's attendance"),
+                        ("/Fees/Collect","fa-money-bill","orange","Collect Fee","Record fee payment"),
+                        ("/Exams/Create","fa-file-alt","red","Create Exam","Schedule new exam"),
+                        ("/Notices/Create","fa-bullhorn","cyan","Post Notice","Publish announcement")
+                    })
+                    {
+                        <div class="col-sm-6 col-lg-4 col-xl-2">
+                            <a href="@action.Item1" class="text-decoration-none">
+                                <div class="p-3 rounded-3 border text-center h-100 quick-action-card" style="transition:all .2s">
+                                    <div class="stat-icon @action.Item3 mx-auto mb-2" style="width:44px;height:44px;font-size:1rem;">
+                                        <i class="fas @action.Item2"></i>
+                                    </div>
+                                    <div class="fw-semibold small">@action.Item4</div>
+                                    <div class="text-muted" style="font-size:.75rem;">@action.Item5</div>
+                                </div>
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Leaves -->
+    @if (Model.PendingLeaves > 0)
+    {
+        <div class="col-12">
+            <div class="alert alert-warning d-flex align-items-center gap-3" role="alert">
+                <i class="fas fa-exclamation-triangle fa-lg"></i>
+                <div>
+                    <strong>@Model.PendingLeaves pending leave request(s)</strong> require your attention.
+                    <a href="/Leaves" class="alert-link ms-2">Review now →</a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+.quick-action-card:hover { background: var(--bg-body); border-color: var(--primary) !important; transform: translateY(-2px); }
+.x-small { font-size: .75rem; }
+</style>

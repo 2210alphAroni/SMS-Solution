@@ -1,0 +1,87 @@
+@model List<SchoolManagementSystem.Models.Class>
+@{
+    ViewData["Title"] = "Classes";
+    var currentYear = ViewBag.CurrentYear as SchoolManagementSystem.Models.AcademicYear;
+}
+<div class="page-header">
+    <div>
+        <h1><i class="fas fa-door-open me-2 text-primary"></i>Classes & Sections</h1>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="/Dashboard">Dashboard</a></li><li class="breadcrumb-item active">Classes</li></ol></nav>
+    </div>
+    @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+    {
+        <a href="/Classes/Create" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Add Class</a>
+    }
+</div>
+
+@if (currentYear != null)
+{
+    <div class="alert alert-info mb-4">
+        <i class="fas fa-info-circle me-2"></i>Showing classes for academic year: <strong>@currentYear.Name</strong>
+    </div>
+}
+
+@if (Model.Any())
+{
+    <div class="row g-4">
+        @foreach (var cls in Model)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="stat-icon purple" style="width:48px;height:48px;font-size:1.1rem;">
+                                <i class="fas fa-door-open"></i>
+                            </div>
+                            @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+                            {
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="/Classes/Edit/@cls.Id"><i class="fas fa-edit me-2"></i>Edit</a></li>
+                                        <li>
+                                            <form asp-action="Delete" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@cls.Id"/>
+                                                <button type="submit" class="dropdown-item text-danger" data-confirm="Delete class '@cls.Name'?"><i class="fas fa-trash me-2"></i>Delete</button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
+                            }
+                        </div>
+                        <h5 class="fw-bold">@cls.Name</h5>
+                        <div class="mb-3">
+                            <div class="text-muted small mb-2">Sections (@cls.Sections.Count)</div>
+                            <div class="d-flex flex-wrap gap-2">
+                                @if (cls.Sections.Any())
+                                {
+                                    @foreach (var sec in cls.Sections)
+                                    {
+                                        <span class="badge bg-primary-subtle text-primary border border-primary">Section @sec.Name</span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">No sections added</span>
+                                }
+                            </div>
+                        </div>
+                        <a href="/Students?classId=@cls.Id" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-users me-1"></i>View Students
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="text-center py-5 text-muted card"><div class="card-body">
+        <i class="fas fa-door-open fa-3x mb-3 d-block opacity-25"></i>
+        <h5>No classes found</h5>
+        <p>Create your first class to get started.</p>
+        <a href="/Classes/Create" class="btn btn-primary mt-2"><i class="fas fa-plus me-2"></i>Create First Class</a>
+    </div></div>
+}

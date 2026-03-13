@@ -1,0 +1,116 @@
+@model SchoolManagementSystem.Models.Student
+@{
+    ViewData["Title"] = "Add Student";
+    var classes = ViewBag.Classes as List<SchoolManagementSystem.Models.Class> ?? new();
+    var academicYears = ViewBag.AcademicYears as List<SchoolManagementSystem.Models.AcademicYear> ?? new();
+}
+<div class="page-header">
+    <div>
+        <h1><i class="fas fa-user-plus me-2 text-primary"></i>Add New Student</h1>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="/Dashboard">Dashboard</a></li><li class="breadcrumb-item"><a href="/Students">Students</a></li><li class="breadcrumb-item active">Add Student</li></ol></nav>
+    </div>
+</div>
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header"><i class="fas fa-user me-2 text-primary"></i>Personal Information</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label">First Name *</label><input asp-for="FirstName" class="form-control" required/></div>
+                        <div class="col-md-6"><label class="form-label">Last Name *</label><input asp-for="LastName" class="form-control" required/></div>
+                        <div class="col-md-6"><label class="form-label">Email</label><input asp-for="Email" type="email" class="form-control"/></div>
+                        <div class="col-md-6"><label class="form-label">Phone</label><input asp-for="Phone" class="form-control"/></div>
+                        <div class="col-md-4"><label class="form-label">Date of Birth</label><input asp-for="DateOfBirth" type="date" class="form-control"/></div>
+                        <div class="col-md-4"><label class="form-label">Gender</label>
+                            <select asp-for="Gender" class="form-select">
+                                <option value="">-- Select --</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4"><label class="form-label">Blood Group</label>
+                            <select asp-for="BloodGroup" class="form-select">
+                                <option value="">-- Select --</option>
+                                @foreach(var bg in new[]{"A+","A-","B+","B-","AB+","AB-","O+","O-"}){<option value="@bg">@bg</option>}
+                            </select>
+                        </div>
+                        <div class="col-md-6"><label class="form-label">Religion</label>
+                            <select asp-for="Religion" class="form-select">
+                                <option value="">-- Select --</option>
+                                @foreach(var r in new[]{"Islam","Hinduism","Christianity","Buddhism","Other"}){<option value="@r">@r</option>}
+                            </select>
+                        </div>
+                        <div class="col-md-6"><label class="form-label">Nationality</label><input asp-for="Nationality" class="form-control" value="Bangladeshi"/></div>
+                    </div>
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header"><i class="fas fa-map-marker-alt me-2 text-primary"></i>Address</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12"><label class="form-label">Present Address</label><textarea asp-for="Address.PresentAddress" class="form-control" rows="2"></textarea></div>
+                        <div class="col-12"><label class="form-label">Permanent Address</label><textarea asp-for="Address.PermanentAddress" class="form-control" rows="2"></textarea></div>
+                        <div class="col-md-4"><label class="form-label">City</label><input asp-for="Address.City" class="form-control"/></div>
+                        <div class="col-md-4"><label class="form-label">State/Division</label><input asp-for="Address.State" class="form-control"/></div>
+                        <div class="col-md-4"><label class="form-label">Country</label><input asp-for="Address.Country" class="form-control" value="Bangladesh"/></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header"><i class="fas fa-graduation-cap me-2 text-primary"></i>Academic Info</div>
+                <div class="card-body">
+                    <div class="mb-3"><label class="form-label">Class *</label>
+                        <select asp-for="ClassId" class="form-select" id="classSelect" onchange="loadSections()">
+                            <option value="">-- Select Class --</option>
+                            @foreach(var c in classes){<option value="@c.Id">@c.Name</option>}
+                        </select>
+                    </div>
+                    <div class="mb-3"><label class="form-label">Section</label>
+                        <select asp-for="Section" class="form-select" id="sectionSelect">
+                            <option value="">-- Select Section --</option>
+                        </select>
+                    </div>
+                    <div class="mb-3"><label class="form-label">Academic Year</label>
+                        <select asp-for="AcademicYearId" class="form-select">
+                            <option value="">-- Select Year --</option>
+                            @foreach(var y in academicYears){<option value="@y.Id" selected="@(y.IsCurrentYear)">@y.Name</option>}
+                        </select>
+                    </div>
+                    <div class="mb-3"><label class="form-label">Admission Date</label><input asp-for="AdmissionDate" type="date" class="form-control"/></div>
+                    <div class="mb-3"><label class="form-label">Roll No</label><input asp-for="RollNo" class="form-control" placeholder="Auto or enter manually"/></div>
+                    <div class="mb-3"><label class="form-label">Status</label>
+                        <select asp-for="Status" class="form-select">
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header"><i class="fas fa-building me-2 text-primary"></i>Previous School</div>
+                <div class="card-body">
+                    <div class="mb-3"><label class="form-label">Previous School Name</label><input asp-for="PreviousSchool" class="form-control" placeholder="Optional"/></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="d-flex gap-3 justify-content-end mt-2">
+        <a href="/Students" class="btn btn-outline-secondary"><i class="fas fa-times me-2"></i>Cancel</a>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Save Student</button>
+    </div>
+</form>
+<script>
+var classData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(classes.Select(c => new { c.Id, c.Name, Sections = c.Sections.Select(s => s.Name) })));
+function loadSections() {
+    const classId = document.getElementById('classSelect').value;
+    const sectionSel = document.getElementById('sectionSelect');
+    sectionSel.innerHTML = '<option value="">-- Select Section --</option>';
+    const cls = classData.find(c => c.Id === classId);
+    if (cls) cls.Sections.forEach(s => { const o = document.createElement('option'); o.value = s; o.text = s; sectionSel.appendChild(o); });
+}
+</script>

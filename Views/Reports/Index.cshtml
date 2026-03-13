@@ -1,0 +1,70 @@
+@{
+    ViewData["Title"] = "Reports";
+    var classes = ViewBag.Classes as List<SchoolManagementSystem.Models.Class> ?? new();
+}
+<div class="page-header">
+    <div>
+        <h1><i class="fas fa-chart-bar me-2 text-primary"></i>Reports & Analytics</h1>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="/Dashboard">Dashboard</a></li><li class="breadcrumb-item active">Reports</li></ol></nav>
+    </div>
+</div>
+
+<div class="row g-4">
+    @foreach (var report in new[] {
+        ("/Reports/Students", "fa-user-graduate", "blue", "Student Report", "List of all students with class, status, and details"),
+        ("/Reports/FeeCollection", "fa-money-bill-wave", "green", "Fee Collection Report", "Track fee payments and outstanding dues"),
+        ("/Attendance/Report", "fa-clipboard-check", "purple", "Attendance Report", "Class-wise and student-wise attendance summary"),
+        ("#", "fa-file-alt", "orange", "Exam Results Report", "Results analysis, grade distribution, and toppers list"),
+        ("#", "fa-chalkboard-teacher", "cyan", "Teacher Report", "Staff details, attendance, and performance"),
+        ("#", "fa-chart-line", "red", "Financial Summary", "Monthly/annual fee collection and expense overview")
+    })
+    {
+        <div class="col-md-6 col-lg-4">
+            <a href="@report.Item1" class="text-decoration-none">
+                <div class="card h-100" style="transition:all .2s">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center gap-4">
+                            <div class="stat-icon @report.Item3" style="width:56px;height:56px;font-size:1.3rem;flex-shrink:0;">
+                                <i class="fas @report.Item2"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-1">@report.Item4</h6>
+                                <p class="text-muted small mb-0">@report.Item5</p>
+                            </div>
+                            <i class="fas fa-arrow-right text-muted ms-auto"></i>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    }
+</div>
+
+<!-- Quick Stats -->
+<div class="card mt-4">
+    <div class="card-header"><i class="fas fa-tachometer-alt text-primary me-2"></i>This Month Summary</div>
+    <div class="card-body">
+        <div class="row g-4">
+            <div class="col-md-3 text-center">
+                <div class="fw-bold fs-2 text-primary">—</div>
+                <div class="text-muted small">New Admissions</div>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="fw-bold fs-2 text-success">—</div>
+                <div class="text-muted small">Fee Collected (৳)</div>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="fw-bold fs-2 text-warning">—</div>
+                <div class="text-muted small">Avg. Attendance %</div>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="fw-bold fs-2 text-info">—</div>
+                <div class="text-muted small">Exams Scheduled</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+</style>

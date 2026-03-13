@@ -1,0 +1,116 @@
+@model List<SchoolManagementSystem.Models.Subject>
+@{
+    ViewData["Title"] = "Subjects";
+    var classes = ViewBag.Classes as List<SchoolManagementSystem.Models.Class> ?? new();
+    var teachers = ViewBag.Teachers as List<SchoolManagementSystem.Models.Teacher> ?? new();
+}
+<div class="page-header">
+    <div>
+        <h1><i class="fas fa-book me-2 text-primary"></i>Subjects</h1>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/Dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item active">Subjects</li>
+        </ol></nav>
+    </div>
+    @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+    {
+        <a href="/Subjects/Create" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Add Subject</a>
+    }
+</div>
+
+<!-- Filter -->
+<div class="table-card">
+    <div class="table-header">
+        <h6 class="mb-0 fw-bold">Subject List</h6>
+        <form method="get" class="d-flex gap-2">
+            <select name="classId" class="form-select form-select-sm" style="width:180px;" onchange="this.form.submit()">
+                <option value="">All Classes</option>
+                @foreach (var c in classes)
+                {
+                    <option value="@c.Id" selected="@(ViewBag.SelectedClass == c.Id ? "selected" : null)">@c.Name</option>
+                }
+            </select>
+        </form>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>SUBJECT</th>
+                        <th>CODE</th>
+                        <th>CLASS</th>
+                        <th>TEACHER</th>
+                        <th>TOTAL MARKS</th>
+                        <th>PASS MARKS</th>
+                        <th>STATUS</th>
+                        <th>ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in Model)
+                    {
+                        var cls = classes.FirstOrDefault(c => c.Id == s.ClassId);
+                        var teacher = teachers.FirstOrDefault(t => t.Id == s.TeacherId);
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar" style="background:var(--info);width:36px;height:36px;font-size:.8rem;">
+                                        <i class="fas fa-book"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold">@s.Name</div>
+                                        @if (!string.IsNullOrEmpty(s.Description))
+                                        {
+                                            <div class="text-muted small" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@s.Description</div>
+                                        }
+                                    </div>
+                                </div>
+                            </td>
+                            <td><code class="text-primary">@s.Code</code></td>
+                            <td>@(cls?.Name ?? "-")</td>
+                            <td>@(teacher?.FullName ?? "-")</td>
+                            <td><span class="badge bg-light text-dark">@s.TotalMarks</span></td>
+                            <td><span class="badge bg-light text-dark">@s.PassMarks</span></td>
+                            <td>
+                                <span class="badge @(s.IsActive ? "badge-status-active" : "badge-status-inactive")">
+                                    @(s.IsActive ? "Active" : "Inactive")
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <a href="/Subjects/Edit/@s.Id" class="btn btn-sm btn-outline-secondary btn-icon">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+                                    {
+                                        <form asp-controller="Subjects" asp-action="Delete" method="post" style="display:inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@s.Id"/>
+                                            <button type="submit" class="btn btn-sm btn-outline-danger btn-icon"
+                                                    data-confirm="Delete subject '@s.Name'?">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="fas fa-book fa-3x mb-3 d-block opacity-25"></i>
+            <h5>No subjects found</h5>
+            <a href="/Subjects/Create" class="btn btn-primary mt-2">
+                <i class="fas fa-plus me-2"></i>Add First Subject
+            </a>
+        </div>
+    }
+</div>

@@ -1,0 +1,87 @@
+@model List<SchoolManagementSystem.Models.Teacher>
+@{
+    ViewData["Title"] = "Teachers";
+}
+<div class="page-header">
+    <div>
+        <h1><i class="fas fa-chalkboard-teacher me-2 text-primary"></i>Teachers</h1>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="/Dashboard">Dashboard</a></li><li class="breadcrumb-item active">Teachers</li></ol></nav>
+    </div>
+    @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+    {
+        <a href="/Teachers/Create" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Add Teacher</a>
+    }
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-4"><div class="stat-card"><div class="stat-icon green"><i class="fas fa-users"></i></div><div><div class="stat-value">@Model.Count</div><div class="stat-label">Total Teachers</div></div></div></div>
+    <div class="col-sm-4"><div class="stat-card"><div class="stat-icon blue"><i class="fas fa-male"></i></div><div><div class="stat-value">@Model.Count(t => t.Gender == "Male")</div><div class="stat-label">Male</div></div></div></div>
+    <div class="col-sm-4"><div class="stat-card"><div class="stat-icon purple"><i class="fas fa-female"></i></div><div><div class="stat-value">@Model.Count(t => t.Gender == "Female")</div><div class="stat-label">Female</div></div></div></div>
+</div>
+
+<div class="table-card">
+    <div class="table-header">
+        <h6 class="mb-0 fw-bold">Staff Directory</h6>
+        <form method="get" class="d-flex gap-2">
+            <input name="search" class="form-control" style="width:220px;" placeholder="Search teacher..."/>
+            <select name="status" class="form-select" style="width:130px;">
+                <option value="">All Status</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+            </select>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
+        </form>
+    </div>
+    @if (Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table">
+                <thead><tr><th>TEACHER</th><th>EMPLOYEE ID</th><th>DESIGNATION</th><th>DEPARTMENT</th><th>CONTACT</th><th>JOINING DATE</th><th>STATUS</th><th>ACTIONS</th></tr></thead>
+                <tbody>
+                    @foreach (var t in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar">@t.FirstName.Substring(0,1).ToUpper()</div>
+                                    <div>
+                                        <div class="fw-semibold">@t.FullName</div>
+                                        <div class="text-muted small">@t.Email</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><code class="text-primary">@t.EmployeeId</code></td>
+                            <td>@t.Designation</td>
+                            <td>@t.Department</td>
+                            <td><div class="small">@t.Phone</div></td>
+                            <td class="small">@t.JoiningDate.ToString("dd MMM yyyy")</td>
+                            <td><span class="badge badge-status-@t.Status.ToLower()">@t.Status</span></td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <a href="/Teachers/Details/@t.Id" class="btn btn-sm btn-outline-primary btn-icon"><i class="fas fa-eye"></i></a>
+                                    <a href="/Teachers/Edit/@t.Id" class="btn btn-sm btn-outline-secondary btn-icon"><i class="fas fa-edit"></i></a>
+                                    @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+                                    {
+                                        <form asp-action="Delete" method="post" style="display:inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@t.Id"/>
+                                            <button type="submit" class="btn btn-sm btn-outline-danger btn-icon" data-confirm="Delete teacher '@t.FullName'?"><i class="fas fa-trash"></i></button>
+                                        </form>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="fas fa-chalkboard-teacher fa-3x mb-3 d-block opacity-25"></i>
+            <h5>No teachers found</h5>
+            <a href="/Teachers/Create" class="btn btn-primary mt-2"><i class="fas fa-plus me-2"></i>Add First Teacher</a>
+        </div>
+    }
+</div>

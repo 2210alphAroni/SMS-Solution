@@ -1,0 +1,94 @@
+@model SchoolManagementSystem.Models.Teacher
+@{
+    ViewData["Title"] = "Edit Teacher";
+    var subjects = ViewBag.Subjects as List<SchoolManagementSystem.Models.Subject> ?? new();
+}
+<div class="page-header">
+    <div>
+        <h1><i class="fas fa-user-edit me-2 text-primary"></i>Edit Teacher</h1>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/Dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="/Teachers">Teachers</a></li>
+            <li class="breadcrumb-item active">Edit - @Model.FullName</li>
+        </ol></nav>
+    </div>
+</div>
+<form asp-action="Edit" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="TenantId" />
+    <input type="hidden" asp-for="EmployeeId" />
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header"><i class="fas fa-user me-2 text-primary"></i>Personal Information</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label">First Name *</label><input asp-for="FirstName" class="form-control" required /></div>
+                        <div class="col-md-6"><label class="form-label">Last Name *</label><input asp-for="LastName" class="form-control" required /></div>
+                        <div class="col-md-6"><label class="form-label">Email *</label><input asp-for="Email" type="email" class="form-control" required /></div>
+                        <div class="col-md-6"><label class="form-label">Phone *</label><input asp-for="Phone" class="form-control" required /></div>
+                        <div class="col-md-4"><label class="form-label">Date of Birth</label><input asp-for="DateOfBirth" type="date" class="form-control" /></div>
+                        <div class="col-md-4"><label class="form-label">Gender</label>
+                            <select asp-for="Gender" class="form-select">
+                                <option value="">-- Select --</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4"><label class="form-label">Blood Group</label>
+                            <select asp-for="BloodGroup" class="form-select">
+                                <option value="">-- Select --</option>
+                                @foreach(var bg in new[]{"A+","A-","B+","B-","AB+","AB-","O+","O-"})
+                                { <option value="@bg">@bg</option> }
+                            </select>
+                        </div>
+                        <div class="col-12"><label class="form-label">Address</label><textarea asp-for="Address" class="form-control" rows="2"></textarea></div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><i class="fas fa-briefcase me-2 text-primary"></i>Professional Details</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label">Designation</label><input asp-for="Designation" class="form-control" /></div>
+                        <div class="col-md-6"><label class="form-label">Department</label><input asp-for="Department" class="form-control" /></div>
+                        <div class="col-md-6"><label class="form-label">Qualification</label><input asp-for="Qualification" class="form-control" /></div>
+                        <div class="col-md-6"><label class="form-label">Specialization</label><input asp-for="Specialization" class="form-control" /></div>
+                        <div class="col-md-6"><label class="form-label">Joining Date</label><input asp-for="JoiningDate" type="date" class="form-control" /></div>
+                        <div class="col-md-6"><label class="form-label">Monthly Salary (৳)</label><input asp-for="Salary" type="number" class="form-control" step="0.01" /></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header"><i class="fas fa-cog me-2 text-primary"></i>Settings</div>
+                <div class="card-body">
+                    <div class="mb-3"><label class="form-label">Status</label>
+                        <select asp-for="Status" class="form-select">
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="mb-3"><label class="form-label">Assigned Subjects</label>
+                        <div style="max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:8px;">
+                            @foreach (var s in subjects)
+                            {
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="SubjectIds" value="@s.Id" id="sub_@s.Id"
+                                           checked="@(Model.SubjectIds.Contains(s.Id) ? "checked" : null)" />
+                                    <label class="form-check-label small" for="sub_@s.Id">@s.Name</label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="d-flex gap-3 justify-content-end mt-2">
+        <a href="/Teachers" class="btn btn-outline-secondary"><i class="fas fa-times me-2"></i>Cancel</a>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Save Changes</button>
+    </div>
+</form>

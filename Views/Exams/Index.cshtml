@@ -1,0 +1,60 @@
+@model List<SchoolManagementSystem.Models.Exam>
+@{
+    ViewData["Title"] = "Exams & Results";
+}
+<div class="page-header">
+    <div>
+        <h1><i class="fas fa-file-alt me-2 text-primary"></i>Exams & Results</h1>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="/Dashboard">Dashboard</a></li><li class="breadcrumb-item active">Exams</li></ol></nav>
+    </div>
+    @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+    {
+        <a href="/Exams/Create" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Create Exam</a>
+    }
+</div>
+@if (Model.Any())
+{
+    <div class="row g-4">
+        @foreach (var exam in Model)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <span class="badge bg-primary">@exam.ExamType</span>
+                            <span class="badge @(exam.IsResultPublished ? "bg-success" : "bg-secondary")">
+                                @(exam.IsResultPublished ? "Results Published" : "Upcoming")
+                            </span>
+                        </div>
+                        <h5 class="fw-bold mb-2">@exam.Name</h5>
+                        <div class="text-muted small mb-3">
+                            <div><i class="fas fa-calendar me-2"></i>@exam.StartDate.ToString("dd MMM") - @exam.EndDate.ToString("dd MMM yyyy")</div>
+                            <div class="mt-1"><i class="fas fa-list me-2"></i>@exam.Schedule.Count subjects</div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="/Exams/EnterResults/@exam.Id" class="btn btn-sm btn-outline-primary flex-grow-1">
+                                <i class="fas fa-edit me-1"></i>Enter Results
+                            </a>
+                            @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+                            {
+                                <form asp-action="Delete" method="post" style="display:inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@exam.Id"/>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" data-confirm="Delete exam '@exam.Name'?"><i class="fas fa-trash"></i></button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="text-center py-5 text-muted card"><div class="card-body">
+        <i class="fas fa-file-alt fa-3x mb-3 d-block opacity-25"></i>
+        <h5>No exams created yet</h5>
+        <a href="/Exams/Create" class="btn btn-primary mt-2"><i class="fas fa-plus me-2"></i>Create First Exam</a>
+    </div></div>
+}

@@ -1,0 +1,203 @@
+@model SchoolManagementSystem.Models.Tenant
+@{
+    ViewData["Title"] = "School Settings";
+}
+<div class="page-header">
+    <div>
+        <h1><i class="fas fa-cog me-2 text-primary"></i>School Settings</h1>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/Dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item active">Settings</li>
+        </ol></nav>
+    </div>
+</div>
+
+<form asp-controller="Settings" asp-action="Update" method="post">
+    @Html.AntiForgeryToken()
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <!-- School Info -->
+            <div class="card mb-4">
+                <div class="card-header"><i class="fas fa-school me-2 text-primary"></i>School Information</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label">School Name *</label>
+                            <input asp-for="SchoolName" class="form-control" required/>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">School Code (Subdomain)</label>
+                            <input asp-for="Subdomain" class="form-control" readonly/>
+                            <div class="form-text text-muted">Cannot be changed</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Principal Name</label>
+                            <input asp-for="PrincipalName" class="form-control"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input asp-for="Email" type="email" class="form-control"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Phone</label>
+                            <input asp-for="Phone" class="form-control"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Established Year</label>
+                            <input asp-for="EstablishedYear" class="form-control" placeholder="e.g., 1995"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">City</label>
+                            <input asp-for="City" class="form-control"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Country</label>
+                            <input asp-for="Country" class="form-control"/>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Address</label>
+                            <textarea asp-for="Address" class="form-control" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Academic Settings -->
+            <div class="card mb-4">
+                <div class="card-header"><i class="fas fa-graduation-cap me-2 text-primary"></i>Academic Settings</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Currency</label>
+                            <select asp-for="Settings.Currency" class="form-select">
+                                <option value="BDT">BDT (৳)</option>
+                                <option value="USD">USD ($)</option>
+                                <option value="EUR">EUR (€)</option>
+                                <option value="GBP">GBP (£)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Date Format</label>
+                            <select asp-for="Settings.DateFormat" class="form-select">
+                                <option value="dd/MM/yyyy">DD/MM/YYYY</option>
+                                <option value="MM/dd/yyyy">MM/DD/YYYY</option>
+                                <option value="yyyy-MM-dd">YYYY-MM-DD</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Timezone</label>
+                            <select asp-for="Settings.TimeZone" class="form-select">
+                                <option value="Asia/Dhaka">Asia/Dhaka (GMT+6)</option>
+                                <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+                                <option value="UTC">UTC</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">School Start Time</label>
+                            <input asp-for="Settings.SchoolStartTime" type="time" class="form-control"/>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">School End Time</label>
+                            <input asp-for="Settings.SchoolEndTime" type="time" class="form-control"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Theme Color</label>
+                            <div class="input-group">
+                                <input asp-for="Settings.ThemeColor" type="color" class="form-control form-control-color" style="width:50px;"/>
+                                <input asp-for="Settings.ThemeColor" type="text" class="form-control" id="themeColorText"/>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Working Days</label>
+                            <div class="d-flex flex-wrap gap-2 mt-1">
+                                @foreach (var day in new[] { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" })
+                                {
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="Settings.WorkingDays"
+                                               value="@day" id="day_@day"
+                                               checked="@(new[] { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday" }.Contains(day) ? "checked" : null)"/>
+                                        <label class="form-check-label" for="day_@day">@day</label>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notification Settings -->
+            <div class="card mb-4">
+                <div class="card-header"><i class="fas fa-bell me-2 text-primary"></i>Notifications</div>
+                <div class="card-body">
+                    <div class="d-flex flex-column gap-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-semibold">Email Notifications</div>
+                                <div class="text-muted small">Send emails for fee dues, exam results, notices</div>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input asp-for="Settings.EnableEmailNotification" class="form-check-input" type="checkbox" role="switch"/>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-semibold">SMS Notifications</div>
+                                <div class="text-muted small">Send SMS alerts to parents (requires SMS integration)</div>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input asp-for="Settings.EnableSmsNotification" class="form-check-input" type="checkbox" role="switch"/>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-semibold">Online Fee Payment</div>
+                                <div class="text-muted small">Allow parents to pay fees online via Stripe</div>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input asp-for="Settings.EnableOnlineFeePayment" class="form-check-input" type="checkbox" role="switch"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Subscription Info -->
+            <div class="card mb-4">
+                <div class="card-header"><i class="fas fa-crown me-2 text-warning"></i>Subscription</div>
+                <div class="card-body text-center">
+                    <div class="display-6 fw-bold text-primary mb-1">@Model?.SubscriptionPlan</div>
+                    <div class="text-muted small mb-3">Current Plan</div>
+                    @if (Model != null)
+                    {
+                        <div class="small text-muted mb-3">
+                            Valid until: <strong>@Model.SubscriptionEndDate.ToString("dd MMM yyyy")</strong>
+                        </div>
+                    }
+                    <a href="/Subscription" class="btn btn-warning btn-sm">
+                        <i class="fas fa-arrow-up me-1"></i>Upgrade Plan
+                    </a>
+                </div>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="card border-danger">
+                <div class="card-header text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Danger Zone</div>
+                <div class="card-body">
+                    <p class="text-muted small">These actions are irreversible. Please be certain.</p>
+                    <button type="button" class="btn btn-outline-danger btn-sm w-100 mb-2"
+                            data-confirm="This will permanently delete ALL data for this school. Are you absolutely sure?">
+                        <i class="fas fa-trash me-2"></i>Delete All School Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-end mt-2">
+        <button type="submit" class="btn btn-primary btn-lg">
+            <i class="fas fa-save me-2"></i>Save All Settings
+        </button>
+    </div>
+</form>

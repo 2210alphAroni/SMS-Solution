@@ -1,0 +1,128 @@
+@model SchoolManagementSystem.Models.Exam
+@{
+    ViewData["Title"] = "Create Exam";
+    var classes = ViewBag.Classes as List<SchoolManagementSystem.Models.Class> ?? new();
+    var subjects = ViewBag.Subjects as List<SchoolManagementSystem.Models.Subject> ?? new();
+    var academicYears = ViewBag.AcademicYears as List<SchoolManagementSystem.Models.AcademicYear> ?? new();
+}
+<div class="page-header">
+    <div>
+        <h1><i class="fas fa-file-alt me-2 text-primary"></i>Create Exam</h1>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="/Dashboard">Dashboard</a></li><li class="breadcrumb-item"><a href="/Exams">Exams</a></li><li class="breadcrumb-item active">Create</li></ol></nav>
+    </div>
+</div>
+<form asp-action="Create" method="post" id="examForm">
+    @Html.AntiForgeryToken()
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header"><i class="fas fa-info-circle me-2 text-primary"></i>Exam Information</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12"><label class="form-label">Exam Name *</label><input asp-for="Name" class="form-control" placeholder="e.g., Mid-Term Examination 2025" required/></div>
+                        <div class="col-md-6"><label class="form-label">Exam Type</label>
+                            <select asp-for="ExamType" class="form-select">
+                                @foreach (var t in new[] { "Unit Test", "Mid Term", "Final", "Mock Test", "Annual" })
+                                { <option value="@t">@t</option> }
+                            </select>
+                        </div>
+                        <div class="col-md-6"><label class="form-label">Academic Year</label>
+                            <select asp-for="AcademicYearId" class="form-select">
+                                <option value="">-- Select Year --</option>
+                                @foreach (var y in academicYears) { <option value="@y.Id" selected="@y.IsCurrentYear">@y.Name</option> }
+                            </select>
+                        </div>
+                        <div class="col-md-6"><label class="form-label">Class *</label>
+                            <select asp-for="ClassId" class="form-select" id="classSelect">
+                                <option value="">-- Select Class --</option>
+                                @foreach (var c in classes) { <option value="@c.Id">@c.Name</option> }
+                            </select>
+                        </div>
+                        <div class="col-md-6"><label class="form-label">Section</label>
+                            <select asp-for="Section" class="form-select"><option value="">All Sections</option></select>
+                        </div>
+                        <div class="col-md-6"><label class="form-label">Start Date *</label><input asp-for="StartDate" type="date" class="form-control" required/></div>
+                        <div class="col-md-6"><label class="form-label">End Date *</label><input asp-for="EndDate" type="date" class="form-control" required/></div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-calendar-alt me-2 text-primary"></i>Subject Schedule</span>
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="addScheduleRow()"><i class="fas fa-plus me-1"></i>Add Subject</button>
+                </div>
+                <div class="card-body">
+                    <div id="scheduleContainer">
+                        <div class="text-muted text-center py-3 small" id="scheduleEmpty">No subjects added. Click "Add Subject" to begin.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card sticky-top" style="top:80px;">
+                <div class="card-header"><i class="fas fa-info-circle me-2 text-primary"></i>Exam Summary</div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Subjects Added</span>
+                        <span class="fw-bold" id="subjectCount">0</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Total Marks</span>
+                        <span class="fw-bold" id="totalMarks">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="d-flex gap-3 justify-content-end mt-4">
+        <a href="/Exams" class="btn btn-outline-secondary"><i class="fas fa-times me-2"></i>Cancel</a>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Create Exam</button>
+    </div>
+</form>
+
+<script>
+var subjectData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(subjects.Select(s => new { s.Id, s.Name, s.Code, s.TotalMarks })));
+var scheduleIndex = 0;
+
+function addScheduleRow() {
+    document.getElementById('scheduleEmpty')?.remove();
+    const container = document.getElementById('scheduleContainer');
+    const row = document.createElement('div');
+    row.className = 'row g-2 align-items-end mb-3 schedule-row border-bottom pb-3';
+    row.innerHTML = `
+        <div class="col-md-4">
+            <label class="form-label small">Subject</label>
+            <select class="form-select form-select-sm" name="Schedule[${scheduleIndex}].SubjectId" required>
+                <option value="">-- Select --</option>
+                ${subjectData.map(s => `<option value="${s.Id}">${s.Name}</option>`).join('')}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small">Exam Date</label>
+            <input type="date" class="form-control form-control-sm" name="Schedule[${scheduleIndex}].ExamDate" required/>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small">Time</label>
+            <input type="time" class="form-control form-control-sm" name="Schedule[${scheduleIndex}].StartTime"/>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small">Total Marks</label>
+            <input type="number" class="form-control form-control-sm marks-input" name="Schedule[${scheduleIndex}].TotalMarks" value="100" min="1"/>
+        </div>
+        <div class="col-md-1">
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('.schedule-row').remove(); updateSummary()"><i class="fas fa-times"></i></button>
+        </div>`;
+    container.appendChild(row);
+    scheduleIndex++;
+    updateSummary();
+    row.querySelector('.marks-input').addEventListener('input', updateSummary);
+}
+
+function updateSummary() {
+    const rows = document.querySelectorAll('.schedule-row');
+    let total = 0;
+    rows.forEach(r => { total += parseInt(r.querySelector('.marks-input')?.value) || 0; });
+    document.getElementById('subjectCount').textContent = rows.length;
+    document.getElementById('totalMarks').textContent = total;
+}
+</script>

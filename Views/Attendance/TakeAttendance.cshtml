@@ -1,0 +1,149 @@
+@model List<SchoolManagementSystem.Models.Student>
+@{
+    ViewData["Title"] = "Take Attendance";
+    var cls = ViewBag.Class as SchoolManagementSystem.Models.Class;
+    var section = ViewBag.Section as string;
+    var date = (DateTime)ViewBag.Date;
+    var existing = ViewBag.ExistingAttendance as SchoolManagementSystem.Models.Attendance;
+}
+<div class="page-header">
+    <div>
+        <h1><i class="fas fa-clipboard-check me-2 text-primary"></i>Take Attendance</h1>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/Dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="/Attendance">Attendance</a></li>
+            <li class="breadcrumb-item active">@cls?.Name @(section) - @date.ToString("dd MMM yyyy")</li>
+        </ol></nav>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-success mark-all-btn" data-status="Present"><i class="fas fa-check-double me-1"></i>All Present</button>
+        <button class="btn btn-outline-danger mark-all-btn" data-status="Absent"><i class="fas fa-times me-1"></i>All Absent</button>
+        <button class="btn btn-primary" id="saveAttendanceBtn" onclick="saveAttendance('@cls?.Id', '@(section)', '@date.ToString("yyyy-MM-dd")')">
+            <i class="fas fa-save me-2"></i>Save Attendance
+        </button>
+    </div>
+</div>
+
+@if (existing != null)
+{
+    <div class="alert alert-info mb-4"><i class="fas fa-info-circle me-2"></i>Attendance for this date already exists. Saving will update the existing records.</div>
+}
+
+<div class="card mb-3">
+    <div class="card-body py-3">
+        <div class="row g-3 text-center">
+            <div class="col-3"><span class="fw-bold text-success" id="countPresent">0</span> <small class="text-muted d-block">Present</small></div>
+            <div class="col-3"><span class="fw-bold text-danger" id="countAbsent">0</span> <small class="text-muted d-block">Absent</small></div>
+            <div class="col-3"><span class="fw-bold text-warning" id="countLate">0</span> <small class="text-muted d-block">Late</small></div>
+            <div class="col-3"><span class="fw-bold text-info" id="countLeave">0</span> <small class="text-muted d-block">Leave</small></div>
+        </div>
+    </div>
+</div>
+
+@Html.AntiForgeryToken()
+
+@if (Model.Any())
+{
+    <div class="attendance-grid">
+        @foreach (var student in Model)
+        {
+            var existingRecord = existing?.Records.FirstOrDefault(r => r.StudentId == student.Id);
+            var currentStatus = existingRecord?.Status ?? "Present";
+            <div class="attendance-row" data-student-id="@student.Id" id="row-@student.Id">
+                <div class="avatar avatar-sm">@student.FirstName.Substring(0,1).ToUpper()</div>
+                <div class="flex-grow-1">
+                    <div class="fw-semibold small">@student.FullName</div>
+                    <div class="text-muted" style="font-size:.75rem;">Roll: @(student.RollNo ?? "-")</div>
+                </div>
+                <div class="attendance-status-btns">
+                    @foreach (var status in new[] { "Present", "Absent", "Late", "Leave" })
+                    {
+                        <button type="button"
+                                class="btn btn-sm status-@status.ToLower() @(currentStatus == status ? "" : "opacity-50")"
+                                onclick="setStatus('@student.Id', '@status', this)">
+                            @status.Substring(0, 1)
+                        </button>
+                    }
+                </div>
+                <select class="attendance-status-select d-none" data-student="@student.Id">
+                    @foreach (var status in new[] { "Present", "Absent", "Late", "Leave" })
+                    {
+                        <option value="@status" selected="@(currentStatus == status ? "selected" : null)">@status</option>
+                    }
+                </select>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="text-center py-5 text-muted card">
+        <div class="card-body">
+            <i class="fas fa-users-slash fa-3x mb-3 d-block opacity-25"></i>
+            <h5>No students found in this class/section</h5>
+            <a href="/Students/Create" class="btn btn-primary mt-2">Add Students</a>
+        </div>
+    </div>
+}
+
+<script>
+function setStatus(studentId, status, btn) {
+    const row = document.getElementById('row-' + studentId);
+    const select = row.querySelector('.attendance-status-select');
+    if (select) select.value = status;
+    row.querySelectorAll('.attendance-status-btns .btn').forEach(b => b.classList.add('opacity-50'));
+    btn.classList.remove('opacity-50');
+    updateCounts();
+}
+
+document.querySelectorAll('.mark-all-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+        const status = this.getAttribute('data-status');
+        document.querySelectorAll('.attendance-row').forEach(row => {
+            const studentId = row.getAttribute('data-student-id');
+            const select = row.querySelector('.attendance-status-select');
+            if (select) select.value = status;
+            row.querySelectorAll('.attendance-status-btns .btn').forEach(b => b.classList.add('opacity-50'));
+            const targetBtn = Array.from(row.querySelectorAll('.attendance-status-btns .btn')).find(b => b.textContent.trim() === status[0]);
+            if (targetBtn) targetBtn.classList.remove('opacity-50');
+        });
+        updateCounts();
+    });
+});
+
+function updateCounts() {
+    const counts = { Present: 0, Absent: 0, Late: 0, Leave: 0 };
+    document.querySelectorAll('.attendance-status-select').forEach(sel => {
+        const v = sel.value;
+        if (counts[v] !== undefined) counts[v]++;
+    });
+    document.getElementById('countPresent').textContent = counts.Present;
+    document.getElementById('countAbsent').textContent = counts.Absent;
+    document.getElementById('countLate').textContent = counts.Late;
+    document.getElementById('countLeave').textContent = counts.Leave;
+}
+
+updateCounts();
+
+function saveAttendance(classId, section, date) {
+    const records = [];
+    document.querySelectorAll('.attendance-row').forEach(row => {
+        records.push({
+            studentId: row.getAttribute('data-student-id'),
+            status: row.querySelector('.attendance-status-select').value
+        });
+    });
+
+    fetch('/Attendance/TakeAttendance', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+        },
+        body: JSON.stringify({ classId, section, date, records })
+    }).then(res => {
+        if(res.ok) window.location.href = '/Attendance';
+        else alert('Error saving attendance');
+    });
+}
+</script>

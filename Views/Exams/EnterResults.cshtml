@@ -1,0 +1,132 @@
+@model SchoolManagementSystem.Models.Exam
+@{
+    ViewData["Title"] = "Enter Results";
+    var students = ViewBag.Students as List<SchoolManagementSystem.Models.Student> ?? new();
+    var subjects = ViewBag.Subjects as List<SchoolManagementSystem.Models.Subject> ?? new();
+    var existingResults = ViewBag.ExistingResults as List<SchoolManagementSystem.Models.ExamResult> ?? new();
+}
+<div class="page-header">
+    <div>
+        <h1><i class="fas fa-pen me-2 text-primary"></i>Enter Results</h1>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/Exams">Exams</a></li>
+            <li class="breadcrumb-item active">@Model.Name</li>
+        </ol></nav>
+    </div>
+    <button class="btn btn-primary" onclick="saveAllResults()"><i class="fas fa-save me-2"></i>Save All Results</button>
+</div>
+
+<div class="alert alert-info mb-4">
+    <i class="fas fa-info-circle me-2"></i>
+    <strong>@Model.Name</strong> &mdash; @Model.ExamType &mdash; @Model.StartDate.ToString("dd MMM") to @Model.EndDate.ToString("dd MMM yyyy")
+    &mdash; <strong>@Model.Schedule.Count subjects</strong>
+</div>
+
+@Html.AntiForgeryToken()
+<div id="resultsContainer">
+    @foreach (var student in students)
+    {
+        var existingResult = existingResults.FirstOrDefault(r => r.StudentId == student.Id);
+        <div class="card mb-3">
+            <div class="card-header d-flex align-items-center gap-3">
+                <div class="avatar" style="width:36px;height:36px;">@student.FirstName[0]</div>
+                <div>
+                    <span class="fw-bold">@student.FullName</span>
+                    <span class="text-muted small ms-2">@student.AdmissionNo</span>
+                </div>
+                <div class="ms-auto">
+                    <span class="badge bg-primary total-badge" id="total-@student.Id">Total: 0 / 0</span>
+                    <span class="badge bg-secondary grade-badge ms-1" id="grade-@student.Id">-</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead><tr><th>SUBJECT</th><th style="width:140px;">OBTAINED MARKS</th><th style="width:120px;">TOTAL MARKS</th><th style="width:80px;">GRADE</th></tr></thead>
+                        <tbody>
+                            @foreach (var schedule in Model.Schedule)
+                            {
+                                var sub = subjects.FirstOrDefault(s => s.Id == schedule.SubjectId);
+                                var existingSub = existingResult?.SubjectResults.FirstOrDefault(sr => sr.SubjectId == schedule.SubjectId);
+                                <tr>
+                                    <td>@(sub?.Name ?? schedule.SubjectId)</td>
+                                    <td>
+                                        <input type="number" class="form-control form-control-sm marks-input"
+                                               data-student="@student.Id" data-subject="@schedule.SubjectId"
+                                               data-total="@schedule.TotalMarks"
+                                               value="@existingSub?.ObtainedMarks" min="0" max="@schedule.TotalMarks"
+                                               placeholder="0" />
+                                    </td>
+                                    <td class="text-muted">@schedule.TotalMarks</td>
+                                    <td><span class="badge bg-secondary sub-grade" id="subgrade-@student.Id-@schedule.SubjectId">-</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<script>
+const examId = '@Model.Id';
+const gradeScale = [[80,'A+','bg-success'],[70,'A','bg-success'],[60,'B','bg-primary'],[50,'C','bg-info'],[40,'D','bg-warning'],[0,'F','bg-danger']];
+
+function getGrade(pct) {
+    for (const [min, g, cls] of gradeScale) {
+        if (pct >= min) return { grade: g, cls };
+    }
+    return { grade: 'F', cls: 'bg-danger' };
+}
+
+function updateStudentTotal(studentId) {
+    const inputs = document.querySelectorAll(`.marks-input[data-student="${studentId}"]`);
+    let obtained = 0, total = 0;
+    inputs.forEach(inp => {
+        const v = parseFloat(inp.value) || 0;
+        const t = parseFloat(inp.getAttribute('data-total')) || 0;
+        obtained += v; total += t;
+        const pct = t > 0 ? (v / t * 100) : 0;
+        const { grade, cls } = getGrade(pct);
+        const subGradeBadge = document.getElementById(`subgrade-${studentId}-${inp.getAttribute('data-subject')}`);
+        if (subGradeBadge) { subGradeBadge.textContent = grade; subGradeBadge.className = `badge ${cls} sub-grade`; }
+    });
+    const pct = total > 0 ? (obtained / total * 100) : 0;
+    const { grade, cls } = getGrade(pct);
+    const totalBadge = document.getElementById(`total-${studentId}`);
+    const gradeBadge = document.getElementById(`grade-${studentId}`);
+    if (totalBadge) totalBadge.textContent = `Total: ${obtained} / ${total} (${pct.toFixed(1)}%)`;
+    if (gradeBadge) { gradeBadge.textContent = grade; gradeBadge.className = `badge ${cls} grade-badge ms-1`; }
+}
+
+document.querySelectorAll('.marks-input').forEach(inp => {
+    inp.addEventListener('input', () => updateStudentTotal(inp.getAttribute('data-student')));
+    updateStudentTotal(inp.getAttribute('data-student'));
+});
+
+async function saveAllResults() {
+    const studentIds = [...new Set([...document.querySelectorAll('.marks-input')].map(i => i.getAttribute('data-student')))];
+    const studentResults = studentIds.map(sid => {
+        const subjects = [...document.querySelectorAll(`.marks-input[data-student="${sid}"]`)].map(inp => ({
+            SubjectId: inp.getAttribute('data-subject'),
+            TotalMarks: parseFloat(inp.getAttribute('data-total')) || 0,
+            ObtainedMarks: parseFloat(inp.value) || 0
+        }));
+        return { StudentId: sid, Subjects: subjects };
+    });
+
+    const token = document.querySelector('[name="__RequestVerificationToken"]').value;
+    const resp = await fetch('/Exams/SaveResults', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+        body: JSON.stringify({ ExamId: examId, StudentResults: studentResults })
+    });
+    const data = await resp.json();
+    if (data.success) {
+        showToast('Results saved successfully!', 'success');
+    } else {
+        showToast('Error saving results: ' + (data.message || 'Unknown error'), 'error');
+    }
+}
+</script>

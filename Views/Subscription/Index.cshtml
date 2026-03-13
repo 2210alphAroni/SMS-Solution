@@ -1,0 +1,156 @@
+@model List<SchoolManagementSystem.Models.SubscriptionPlan>
+@{
+    ViewData["Title"] = "Subscription";
+    var tenant = ViewBag.Tenant as SchoolManagementSystem.Models.Tenant;
+}
+<div class="page-header">
+    <div>
+        <h1><i class="fas fa-crown me-2 text-warning"></i>Subscription</h1>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/Dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item active">Subscription</li>
+        </ol></nav>
+    </div>
+</div>
+
+@if (tenant != null)
+{
+    <div class="card mb-4 border-primary">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <div class="stat-icon orange"><i class="fas fa-crown"></i></div>
+                        <div>
+                            <h5 class="mb-0 fw-bold">Current Plan: <span class="text-primary">@tenant.SubscriptionPlan</span></h5>
+                            <div class="text-muted small">
+                                Valid until: <strong>@tenant.SubscriptionEndDate.ToString("dd MMMM yyyy")</strong>
+                                @if (tenant.SubscriptionEndDate < DateTime.UtcNow)
+                                {
+                                    <span class="badge bg-danger ms-2">Expired</span>
+                                }
+                                else if (tenant.SubscriptionEndDate < DateTime.UtcNow.AddDays(7))
+                                {
+                                    <span class="badge bg-warning text-dark ms-2">Expiring Soon</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <div class="text-muted small">
+                        School: <strong>@tenant.SchoolName</strong><br/>
+                        Code: <code>@tenant.Subdomain</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="text-center mb-4">
+    <h2 class="fw-bold">Choose Your Plan</h2>
+    <p class="text-muted">Upgrade anytime. Cancel anytime. All plans include 30-day free trial.</p>
+</div>
+
+<div class="row g-4 justify-content-center">
+    @foreach (var plan in Model.Where(p => p.IsActive))
+    {
+        var isCurrentPlan = tenant?.SubscriptionPlan == plan.Name;
+        <div class="col-md-6 col-lg-3">
+            <div class="pricing-card @(plan.Name == "Professional" ? "popular" : "") @(isCurrentPlan ? "border-success" : "")">
+                @if (plan.Name == "Professional" && !isCurrentPlan)
+                {
+                    <div class="popular-badge"><i class="fas fa-star me-1"></i>Most Popular</div>
+                }
+                @if (isCurrentPlan)
+                {
+                    <div class="popular-badge" style="background:var(--success)"><i class="fas fa-check me-1"></i>Current Plan</div>
+                }
+                <div class="pricing-name">@plan.Name</div>
+                <div class="pricing-price">
+                    @if (plan.MonthlyPrice == 0)
+                    {
+                        <span>Free</span>
+                    }
+                    else
+                    {
+                        <span>৳@plan.MonthlyPrice.ToString("N0")</span><span>/mo</span>
+                    }
+                </div>
+                @if (plan.AnnualPrice > 0)
+                {
+                    <div class="text-success small mt-1">
+                        <i class="fas fa-tag me-1"></i>৳@plan.AnnualPrice.ToString("N0")/yr (save @(((plan.MonthlyPrice * 12 - plan.AnnualPrice) / (plan.MonthlyPrice * 12) * 100)).ToString("F0")%)
+                    </div>
+                }
+                <p class="text-muted small mt-2">@plan.Description</p>
+                <ul class="pricing-features">
+                    <li>
+                        <i class="fas fa-check"></i>
+                        @(plan.MaxStudents >= 999999 ? "Unlimited" : plan.MaxStudents.ToString()) Students
+                    </li>
+                    <li>
+                        <i class="fas fa-check"></i>
+                        @(plan.MaxTeachers >= 999999 ? "Unlimited" : plan.MaxTeachers.ToString()) Teachers
+                    </li>
+                    @foreach (var feature in plan.Features)
+                    {
+                        <li><i class="fas fa-check"></i>@feature</li>
+                    }
+                </ul>
+
+                @if (isCurrentPlan)
+                {
+                    <button class="btn btn-outline-success w-100" disabled>
+                        <i class="fas fa-check me-2"></i>Current Plan
+                    </button>
+                }
+                else
+                {
+                    <button class="btn @(plan.Name == "Professional" ? "btn-primary" : "btn-outline-primary") w-100"
+                            onclick="subscribePlan('@plan.Id', '@plan.Name', @plan.MonthlyPrice)">
+                        @(plan.MonthlyPrice == 0 ? "Downgrade to Free" : "Upgrade to " + plan.Name)
+                    </button>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<div class="card mt-5">
+    <div class="card-header"><i class="fas fa-question-circle me-2 text-primary"></i>Frequently Asked Questions</div>
+    <div class="card-body">
+        <div class="accordion" id="faqAccordion">
+            @foreach (var faq in new[] {
+                ("Can I upgrade or downgrade anytime?", "Yes! You can change your plan at any time. When upgrading, you'll be charged the prorated difference. When downgrading, the change takes effect at the end of your current billing cycle."),
+                ("What payment methods are accepted?", "We accept all major credit/debit cards, bKash, Nagad, Rocket, and bank transfers. Payments are processed securely through Stripe."),
+                ("Is my data safe?", "Absolutely. Your school data is stored securely on MongoDB Atlas with automatic backups, encryption at rest, and SSL encryption in transit. Each school's data is completely isolated."),
+                ("Can I export my data?", "Yes, you can export student data, fee reports, attendance records, and results to Excel or PDF at any time from the Reports section.")
+            })
+            {
+                var idx = Array.IndexOf(new[] { "Can I upgrade or downgrade anytime?", "What payment methods are accepted?", "Is my data safe?", "Can I export my data?" }, faq.Item1);
+                <div class="accordion-item border-0 border-bottom">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fw-semibold" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#faq@idx">
+                            @faq.Item1
+                        </button>
+                    </h2>
+                    <div id="faq@idx" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body text-muted">@faq.Item2</div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+function subscribePlan(planId, planName, price) {
+    if (confirm(`Switch to ${planName} plan (৳${price}/month)? You will be redirected to payment.`)) {
+        // In production, integrate with Stripe Checkout here
+        alert('Stripe payment integration: In production, this would redirect to Stripe Checkout for secure payment processing.');
+    }
+}
+</script>

@@ -1,0 +1,103 @@
+@{
+    ViewData["Title"] = "Attendance";
+    var classes = ViewBag.Classes as List<SchoolManagementSystem.Models.Class> ?? new();
+}
+<div class="page-header">
+    <div>
+        <h1><i class="fas fa-clipboard-check me-2 text-primary"></i>Attendance</h1>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="/Dashboard">Dashboard</a></li><li class="breadcrumb-item active">Attendance</li></ol></nav>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Take Attendance -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><i class="fas fa-check-circle text-success me-2"></i>Take Attendance</div>
+            <div class="card-body">
+                <form id="attendanceForm">
+                    <div class="mb-3">
+                        <label class="form-label">Class *</label>
+                        <select id="selectClass" class="form-select" required onchange="loadSections()">
+                            <option value="">-- Select Class --</option>
+                            @foreach(var c in classes){ <option value="@c.Id" data-sections="@string.Join(",", c.Sections.Select(s => s.Name))">@c.Name</option> }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Section</label>
+                        <select id="selectSection" class="form-select">
+                            <option value="">-- Select Section --</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Date *</label>
+                        <input type="date" id="attendanceDate" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" required/>
+                    </div>
+                    <button type="button" class="btn btn-primary w-100" onclick="goToAttendance()">
+                        <i class="fas fa-arrow-right me-2"></i>Load Students & Take Attendance
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Report -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><i class="fas fa-chart-bar text-primary me-2"></i>View Attendance Report</div>
+            <div class="card-body">
+                <form asp-controller="Attendance" asp-action="Report" method="get">
+                    <div class="mb-3">
+                        <label class="form-label">Class</label>
+                        <select name="classId" class="form-select">
+                            <option value="">-- Select Class --</option>
+                            @foreach(var c in classes){ <option value="@c.Id">@c.Name</option> }
+                        </select>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6"><label class="form-label">From Date</label><input type="date" name="from" class="form-control" value="@DateTime.Now.AddDays(-30).ToString("yyyy-MM-dd")"/></div>
+                        <div class="col-6"><label class="form-label">To Date</label><input type="date" name="to" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")"/></div>
+                    </div>
+                    <button type="submit" class="btn btn-outline-primary w-100"><i class="fas fa-eye me-2"></i>View Report</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Today's Summary -->
+<div class="card">
+    <div class="card-header"><i class="fas fa-calendar-day text-primary me-2"></i>Today's Quick Stats - @DateTime.Now.ToString("dddd, MMMM dd")</div>
+    <div class="card-body">
+        <div class="row g-3 text-center">
+            @foreach(var item in new[]{("Present","green","fa-check-circle","--"),("Absent","red","fa-times-circle","--"),("Late","orange","fa-clock","--"),("Leave","blue","fa-calendar-minus","--")})
+            {
+                <div class="col-sm-3">
+                    <div class="p-3 rounded-3 border">
+                        <i class="fas @item.Item3 fa-2x mb-2 text-@item.Item2"></i>
+                        <div class="fw-bold fs-4">@item.Item4</div>
+                        <div class="text-muted small">@item.Item1</div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+function loadSections() {
+    const sel = document.getElementById('selectClass');
+    const opt = sel.options[sel.selectedIndex];
+    const sections = opt.getAttribute('data-sections')?.split(',').filter(s => s) || [];
+    const sectionSel = document.getElementById('selectSection');
+    sectionSel.innerHTML = '<option value="">-- All Sections --</option>';
+    sections.forEach(s => { const o = document.createElement('option'); o.value = s; o.text = 'Section ' + s; sectionSel.appendChild(o); });
+}
+function goToAttendance() {
+    const classId = document.getElementById('selectClass').value;
+    const section = document.getElementById('selectSection').value;
+    const date = document.getElementById('attendanceDate').value;
+    if (!classId || !date) { alert('Please select class and date'); return; }
+    window.location.href = `/Attendance/TakeAttendance?classId=${classId}&section=${section}&date=${date}`;
+}
+</script>

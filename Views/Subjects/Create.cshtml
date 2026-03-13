@@ -1,0 +1,86 @@
+@model SchoolManagementSystem.Models.Subject
+@{
+    ViewData["Title"] = "Add Subject";
+    var classes = ViewBag.Classes as List<SchoolManagementSystem.Models.Class> ?? new();
+    var teachers = ViewBag.Teachers as List<SchoolManagementSystem.Models.Teacher> ?? new();
+}
+<div class="page-header">
+    <div>
+        <h1><i class="fas fa-book me-2 text-primary"></i>Add New Subject</h1>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/Dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="/Subjects">Subjects</a></li>
+            <li class="breadcrumb-item active">Add Subject</li>
+        </ol></nav>
+    </div>
+</div>
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header"><i class="fas fa-book me-2 text-primary"></i>Subject Details</div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label">Subject Name *</label>
+                            <input asp-for="Name" class="form-control" placeholder="e.g., Mathematics" required/>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Subject Code</label>
+                            <input asp-for="Code" class="form-control" placeholder="e.g., MATH101"/>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Description</label>
+                            <textarea asp-for="Description" class="form-control" rows="2"
+                                      placeholder="Brief description of the subject..."></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Class *</label>
+                            <select asp-for="ClassId" class="form-select" required>
+                                <option value="">-- Select Class --</option>
+                                @foreach (var c in classes)
+                                {
+                                    <option value="@c.Id">@c.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Assigned Teacher</label>
+                            <select asp-for="TeacherId" class="form-select">
+                                <option value="">-- Select Teacher --</option>
+                                @foreach (var t in teachers)
+                                {
+                                    <option value="@t.Id">@t.FullName (@(t.Specialization ?? t.Department))</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Total Marks</label>
+                            <input asp-for="TotalMarks" type="number" class="form-control" value="100" min="1"/>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Pass Marks</label>
+                            <input asp-for="PassMarks" type="number" class="form-control" value="33" min="0"/>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Status</label>
+                            <select asp-for="IsActive" class="form-select">
+                                <option value="true">Active</option>
+                                <option value="false">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 justify-content-end mt-4">
+                        <a href="/Subjects" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Save Subject
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

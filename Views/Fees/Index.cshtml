@@ -1,0 +1,86 @@
+@model List<SchoolManagementSystem.Models.FeePayment>
+@{
+    ViewData["Title"] = "Fee Management";
+}
+<div class="page-header">
+    <div>
+        <h1><i class="fas fa-money-bill-wave me-2 text-primary"></i>Fee Management</h1>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="/Dashboard">Dashboard</a></li><li class="breadcrumb-item active">Fees</li></ol></nav>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="/Fees/Collect" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Collect Fee</a>
+        <a href="/Fees/Structures" class="btn btn-outline-secondary"><i class="fas fa-list me-2"></i>Fee Structures</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-3">
+        <div class="stat-card"><div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+        <div><div class="stat-value">৳@ViewBag.TotalCollected?.ToString("N0")</div><div class="stat-label">Collected This Month</div></div></div>
+    </div>
+    <div class="col-sm-3">
+        <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-receipt"></i></div>
+        <div><div class="stat-value">@Model.Count</div><div class="stat-label">Total Records</div></div></div>
+    </div>
+    <div class="col-sm-3">
+        <div class="stat-card"><div class="stat-icon orange"><i class="fas fa-exclamation-circle"></i></div>
+        <div><div class="stat-value">@Model.Count(p => p.Status == "Partial" || p.Status == "Unpaid")</div><div class="stat-label">Pending/Partial</div></div></div>
+    </div>
+    <div class="col-sm-3">
+        <div class="stat-card"><div class="stat-icon red"><i class="fas fa-times-circle"></i></div>
+        <div><div class="stat-value">৳@Model.Sum(p => p.DueAmount).ToString("N0")</div><div class="stat-label">Total Due</div></div></div>
+    </div>
+</div>
+
+<div class="table-card">
+    <div class="table-header">
+        <h6 class="mb-0 fw-bold">Payment Records</h6>
+        <div class="d-flex gap-2">
+            <select class="form-select form-select-sm" style="width:130px;">
+                <option>All Status</option>
+                <option>Paid</option><option>Partial</option><option>Unpaid</option><option>Overdue</option>
+            </select>
+            <input type="date" class="form-control form-control-sm" style="width:150px;"/>
+        </div>
+    </div>
+    @if (Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table">
+                <thead><tr><th>RECEIPT NO</th><th>STUDENT</th><th>AMOUNT</th><th>PAID</th><th>DUE</th><th>METHOD</th><th>DATE</th><th>STATUS</th><th>ACTIONS</th></tr></thead>
+                <tbody>
+                    @foreach (var p in Model)
+                    {
+                        <tr>
+                            <td><code class="text-primary">@p.ReceiptNo</code></td>
+                            <td><div class="small text-muted">@p.StudentId</div></td>
+                            <td>৳@p.TotalAmount.ToString("N0")</td>
+                            <td class="text-success fw-semibold">৳@p.PaidAmount.ToString("N0")</td>
+                            <td class="@(p.DueAmount > 0 ? "text-danger fw-semibold" : "text-muted")">৳@p.DueAmount.ToString("N0")</td>
+                            <td><span class="badge bg-light text-dark">@p.PaymentMethod</span></td>
+                            <td class="small">@p.PaymentDate.ToString("dd MMM yyyy")</td>
+                            <td>
+                                <span class="badge @(p.Status == "Paid" ? "bg-success" : p.Status == "Partial" ? "bg-warning text-dark" : "bg-danger")">
+                                    @p.Status
+                                </span>
+                            </td>
+                            <td>
+                                <a href="/Fees/Receipt/@p.Id" class="btn btn-sm btn-outline-primary btn-icon" title="Print Receipt">
+                                    <i class="fas fa-print"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="fas fa-money-bill-wave fa-3x mb-3 d-block opacity-25"></i>
+            <h5>No fee records yet</h5>
+            <a href="/Fees/Collect" class="btn btn-primary mt-2">Collect First Fee</a>
+        </div>
+    }
+</div>

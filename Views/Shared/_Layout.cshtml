@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - EduManage Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @RenderSection("Styles", required: false)
+    <link rel="icon" type="image/svg+xml" href="~/img/favicon.svg">
+</head>
+<body class="app-body">
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <!-- Sidebar -->
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <a href="/Dashboard" class="brand-link">
+                    <i class="fas fa-graduation-cap me-2"></i>
+                    <span class="brand-text">EduManage Pro</span>
+                </a>
+                <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+            </div>
+            <div class="sidebar-school">
+                <div class="school-avatar"><i class="fas fa-school"></i></div>
+                <div class="school-info">
+                    <div class="school-name">@User.FindFirst("TenantName")?.Value</div>
+                    <div class="school-plan badge bg-warning text-dark">@User.FindFirst("SubscriptionPlan")?.Value</div>
+                </div>
+            </div>
+            <ul class="sidebar-nav">
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")" href="/Dashboard">
+                        <i class="fas fa-tachometer-alt"></i><span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-section">ACADEMICS</li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Students" ? "active" : "")" href="/Students">
+                        <i class="fas fa-user-graduate"></i><span>Students</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Teachers" ? "active" : "")" href="/Teachers">
+                        <i class="fas fa-chalkboard-teacher"></i><span>Teachers</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Classes" ? "active" : "")" href="/Classes">
+                        <i class="fas fa-door-open"></i><span>Classes</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Subjects" ? "active" : "")" href="/Subjects">
+                        <i class="fas fa-book"></i><span>Subjects</span>
+                    </a>
+                </li>
+                <li class="nav-section">DAILY OPERATIONS</li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Attendance" ? "active" : "")" href="/Attendance">
+                        <i class="fas fa-clipboard-check"></i><span>Attendance</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Exams" ? "active" : "")" href="/Exams">
+                        <i class="fas fa-file-alt"></i><span>Exams & Results</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Fees" ? "active" : "")" href="/Fees">
+                        <i class="fas fa-money-bill-wave"></i><span>Fee Management</span>
+                    </a>
+                </li>
+                <li class="nav-section">COMMUNICATION</li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Notices" ? "active" : "")" href="/Notices">
+                        <i class="fas fa-bullhorn"></i><span>Notice Board</span>
+                    </a>
+                </li>
+                <li class="nav-section">REPORTS</li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Reports" ? "active" : "")" href="/Reports">
+                        <i class="fas fa-chart-bar"></i><span>Reports</span>
+                    </a>
+                </li>
+                @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+                {
+                    <li class="nav-section">ADMINISTRATION</li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Settings">
+                            <i class="fas fa-cog"></i><span>Settings</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Subscription">
+                            <i class="fas fa-crown"></i><span>Subscription</span>
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+
+        <!-- Main content -->
+        <div class="main-wrapper" id="mainWrapper">
+            <!-- Top navbar -->
+            <nav class="top-navbar">
+                <button class="sidebar-toggle-btn" id="sidebarToggleBtn">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="navbar-search">
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent border-0"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" class="form-control border-0" placeholder="Search students, teachers..." id="globalSearch" />
+                    </div>
+                </div>
+                <div class="navbar-right">
+                    <div class="navbar-item dropdown">
+                        <button class="nav-btn" data-bs-toggle="dropdown">
+                            <i class="fas fa-bell"></i>
+                            <span class="badge bg-danger">3</span>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end notification-dropdown">
+                            <h6 class="dropdown-header">Notifications</h6>
+                            <a class="dropdown-item" href="#"><i class="fas fa-user-plus text-success me-2"></i>New student registered</a>
+                            <a class="dropdown-item" href="#"><i class="fas fa-money-bill text-primary me-2"></i>Fee payment received</a>
+                            <a class="dropdown-item" href="#"><i class="fas fa-calendar text-warning me-2"></i>Exam scheduled tomorrow</a>
+                        </div>
+                    </div>
+                    <div class="navbar-item dropdown">
+                        <button class="nav-btn user-btn" data-bs-toggle="dropdown">
+                            <div class="user-avatar">@User.Identity!.Name!.Substring(0, 1).ToUpper()</div>
+                            <span class="user-name d-none d-md-inline">@User.Identity!.Name</span>
+                            <i class="fas fa-chevron-down ms-1 small"></i>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end user-dropdown">
+                            <div class="dropdown-header">
+                                <div class="fw-bold">@User.Identity!.Name</div>
+                                <small class="text-muted">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</small>
+                            </div>
+                            <a class="dropdown-item" href="/Account/Profile"><i class="fas fa-user me-2"></i>My Profile</a>
+                            <a class="dropdown-item" href="/Settings"><i class="fas fa-cog me-2"></i>Settings</a>
+                            <div class="dropdown-divider"></div>
+                            <form asp-controller="Account" asp-action="Logout" method="post">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="dropdown-item text-danger">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Page content -->
+            <main class="page-content">
+                <!-- Alerts -->
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+                @RenderBody()
+            </main>
+
+            <footer class="app-footer">
+                <span>© @DateTime.Now.Year EduManage Pro. All rights reserved.</span>
+                <span class="ms-auto">Version 1.0.0</span>
+            </footer>
+        </div>
+    }
+    else
+    {
+        @RenderBody()
+    }
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

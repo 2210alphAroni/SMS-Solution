@@ -1,0 +1,70 @@
+@model List<SchoolManagementSystem.Models.Tenant>
+@{
+    ViewData["Title"] = "Super Admin - Schools";
+}
+<div class="page-header">
+    <div>
+        <h1><i class="fas fa-building me-2 text-primary"></i>All Schools</h1>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/Dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item active">Super Admin</li>
+        </ol></nav>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-3"><div class="stat-card"><div class="stat-icon purple"><i class="fas fa-building"></i></div><div><div class="stat-value">@Model.Count</div><div class="stat-label">Total Schools</div></div></div></div>
+    <div class="col-sm-3"><div class="stat-card"><div class="stat-icon green"><i class="fas fa-check-circle"></i></div><div><div class="stat-value">@Model.Count(t => t.IsActive)</div><div class="stat-label">Active Schools</div></div></div></div>
+    <div class="col-sm-3"><div class="stat-card"><div class="stat-icon blue"><i class="fas fa-user-graduate"></i></div><div><div class="stat-value">@ViewBag.TotalStudents</div><div class="stat-label">Total Students</div></div></div></div>
+    <div class="col-sm-3"><div class="stat-card"><div class="stat-icon orange"><i class="fas fa-chalkboard-teacher"></i></div><div><div class="stat-value">@ViewBag.TotalTeachers</div><div class="stat-label">Total Teachers</div></div></div></div>
+</div>
+
+<div class="table-card">
+    <div class="table-header"><h6 class="fw-bold mb-0">Registered Schools</h6></div>
+    <div class="table-responsive">
+        <table class="table">
+            <thead><tr><th>SCHOOL</th><th>SUBDOMAIN</th><th>PLAN</th><th>SUBSCRIPTION ENDS</th><th>REGISTERED</th><th>STATUS</th><th>ACTIONS</th></tr></thead>
+            <tbody>
+                @foreach (var t in Model.OrderByDescending(t => t.CreatedAt))
+                {
+                    <tr>
+                        <td>
+                            <div class="fw-semibold">@t.SchoolName</div>
+                            <div class="text-muted small">@t.Email</div>
+                        </td>
+                        <td><code class="text-primary">@t.Subdomain</code></td>
+                        <td>
+                            <span class="badge @(t.SubscriptionPlan == "Enterprise" ? "bg-danger" : t.SubscriptionPlan == "Professional" ? "bg-primary" : t.SubscriptionPlan == "Basic" ? "bg-info" : "bg-secondary")">
+                                @t.SubscriptionPlan
+                            </span>
+                        </td>
+                        <td class="small @(t.SubscriptionEndDate < DateTime.UtcNow ? "text-danger" : "")">
+                            @t.SubscriptionEndDate.ToString("dd MMM yyyy")
+                        </td>
+                        <td class="small text-muted">@t.CreatedAt.ToString("dd MMM yyyy")</td>
+                        <td>
+                            <span class="badge @(t.IsActive ? "badge-status-active" : "badge-status-inactive")">
+                                @(t.IsActive ? "Active" : "Inactive")
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <form asp-action="ToggleTenant" method="post" style="display:inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@t.Id"/>
+                                    <input type="hidden" name="activate" value="@(!t.IsActive)"/>
+                                    <button type="submit"
+                                            class="btn btn-sm @(t.IsActive ? "btn-outline-danger" : "btn-outline-success")"
+                                            data-confirm="@(t.IsActive ? "Deactivate" : "Activate") school '@t.SchoolName'?">
+                                        <i class="fas fa-@(t.IsActive ? "ban" : "check") me-1"></i>
+                                        @(t.IsActive ? "Deactivate" : "Activate")
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

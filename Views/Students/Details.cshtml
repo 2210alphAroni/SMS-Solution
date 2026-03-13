@@ -1,0 +1,138 @@
+@model SchoolManagementSystem.Models.Student
+@{
+    ViewData["Title"] = "Student Details";
+}
+<div class="page-header">
+    <div>
+        <h1><i class="fas fa-user-graduate me-2 text-primary"></i>Student Profile</h1>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/Dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="/Students">Students</a></li>
+            <li class="breadcrumb-item active">@Model.FullName</li>
+        </ol></nav>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="/Students/Edit/@Model.Id" class="btn btn-outline-primary">
+            <i class="fas fa-edit me-2"></i>Edit
+        </a>
+        <button onclick="window.print()" class="btn btn-outline-secondary">
+            <i class="fas fa-print me-2"></i>Print
+        </button>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Profile Card -->
+    <div class="col-lg-4">
+        <div class="card text-center mb-4">
+            <div class="card-body pt-4">
+                <div class="avatar avatar-lg mx-auto mb-3" style="width:80px;height:80px;font-size:2rem;border-radius:20px;">
+                    @Model.FirstName.Substring(0,1).ToUpper()
+                </div>
+                <h4 class="fw-bold mb-1">@Model.FullName</h4>
+                <div class="text-muted mb-3">@Model.Email</div>
+                <span class="badge @(Model.Status == "Active" ? "badge-status-active" : "badge-status-inactive") fs-6 mb-3">
+                    @Model.Status
+                </span>
+                <div class="row g-2 text-center mt-3">
+                    <div class="col-4">
+                        <div class="fw-bold text-primary">@Model.AdmissionNo</div>
+                        <div class="text-muted" style="font-size:.7rem;">Adm. No</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="fw-bold text-primary">@(Model.RollNo ?? "-")</div>
+                        <div class="text-muted" style="font-size:.7rem;">Roll No</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="fw-bold text-primary">@Model.Section</div>
+                        <div class="text-muted" style="font-size:.7rem;">Section</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Info -->
+        <div class="card mb-4">
+            <div class="card-header"><i class="fas fa-info-circle me-2 text-primary"></i>Quick Info</div>
+            <ul class="list-group list-group-flush">
+                @foreach (var item in new[] {
+                    ("fa-birthday-cake","Date of Birth", Model.DateOfBirth.ToString("dd MMM yyyy")),
+                    ("fa-venus-mars","Gender", Model.Gender ?? "-"),
+                    ("fa-tint","Blood Group", Model.BloodGroup ?? "-"),
+                    ("fa-pray","Religion", Model.Religion ?? "-"),
+                    ("fa-flag","Nationality", Model.Nationality ?? "-"),
+                    ("fa-phone","Phone", Model.Phone ?? "-"),
+                    ("fa-calendar-plus","Admitted On", Model.AdmissionDate)
+                })
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-4">
+                        <span class="text-muted small"><i class="fas @item.Item1 me-2"></i>@item.Item2</span>
+                        <span class="small fw-semibold">@item.Item3</span>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+
+    <!-- Details -->
+    <div class="col-lg-8">
+        <!-- Address -->
+        <div class="card mb-4">
+            <div class="card-header"><i class="fas fa-map-marker-alt me-2 text-primary"></i>Address Information</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="text-muted small mb-1">Present Address</div>
+                        <div>@(Model.Address?.PresentAddress ?? "-")</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="text-muted small mb-1">Permanent Address</div>
+                        <div>@(Model.Address?.PermanentAddress ?? "-")</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-muted small mb-1">City</div>
+                        <div>@(Model.Address?.City ?? "-")</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-muted small mb-1">State/Division</div>
+                        <div>@(Model.Address?.State ?? "-")</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-muted small mb-1">Country</div>
+                        <div>@(Model.Address?.Country ?? "-")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Previous School -->
+        @if (!string.IsNullOrEmpty(Model.PreviousSchool))
+        {
+            <div class="card mb-4">
+                <div class="card-header"><i class="fas fa-school me-2 text-primary"></i>Previous School</div>
+                <div class="card-body">@Model.PreviousSchool</div>
+            </div>
+        }
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header"><i class="fas fa-bolt me-2 text-primary"></i>Quick Actions</div>
+            <div class="card-body">
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="/Fees/Collect?studentId=@Model.Id" class="btn btn-outline-success">
+                        <i class="fas fa-money-bill me-2"></i>Collect Fee
+                    </a>
+                    <a href="/Attendance?studentId=@Model.Id" class="btn btn-outline-primary">
+                        <i class="fas fa-clipboard-check me-2"></i>View Attendance
+                    </a>
+                    <a href="/Exams?studentId=@Model.Id" class="btn btn-outline-info">
+                        <i class="fas fa-file-alt me-2"></i>View Results
+                    </a>
+                    <a href="/Students/Edit/@Model.Id" class="btn btn-outline-secondary">
+                        <i class="fas fa-edit me-2"></i>Edit Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

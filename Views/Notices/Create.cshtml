@@ -1,0 +1,66 @@
+@model SchoolManagementSystem.Models.Notice
+@{
+    ViewData["Title"] = "Post Notice";
+}
+<div class="page-header">
+    <div>
+        <h1><i class="fas fa-bullhorn me-2 text-primary"></i>Post Notice</h1>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="/Dashboard">Dashboard</a></li><li class="breadcrumb-item"><a href="/Notices">Notices</a></li><li class="breadcrumb-item active">Create</li></ol></nav>
+    </div>
+</div>
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header"><i class="fas fa-edit me-2 text-primary"></i>Notice Details</div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Notice Title *</label>
+                            <input asp-for="Title" class="form-control form-control-lg" placeholder="Enter notice title..." required/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Category</label>
+                            <select asp-for="Category" class="form-select">
+                                @foreach (var cat in new[] { "General", "Exam", "Event", "Holiday", "Emergency" })
+                                { <option value="@cat">@cat</option> }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Expiry Date</label>
+                            <input asp-for="ExpiryDate" type="date" class="form-control" value="@DateTime.Now.AddDays(30).ToString("yyyy-MM-dd")"/>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Content *</label>
+                            <textarea asp-for="Content" class="form-control" rows="6" placeholder="Write the notice content here..." required></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Target Audience</label>
+                            <div class="d-flex gap-3 flex-wrap mt-1">
+                                @foreach (var role in new[] { "All", "Students", "Teachers", "Parents", "Admin" })
+                                {
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="TargetRoles" value="@role" id="role_@role"
+                                               checked="@(role == "All" ? "checked" : null)"/>
+                                        <label class="form-check-label" for="role_@role">@role</label>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input asp-for="IsPinned" class="form-check-input" type="checkbox" role="switch"/>
+                                <label class="form-check-label"><i class="fas fa-thumbtack me-1 text-warning"></i>Pin this notice (shows at top)</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 justify-content-end mt-4">
+                        <a href="/Notices" class="btn btn-outline-secondary"><i class="fas fa-times me-2"></i>Cancel</a>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane me-2"></i>Publish Notice</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

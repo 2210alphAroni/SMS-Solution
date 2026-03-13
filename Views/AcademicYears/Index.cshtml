@@ -1,0 +1,101 @@
+@model List<SchoolManagementSystem.Models.AcademicYear>
+@{
+    ViewData["Title"] = "Academic Years";
+}
+<div class="page-header">
+    <div>
+        <h1><i class="fas fa-calendar-alt me-2 text-primary"></i>Academic Years</h1>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/Dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item active">Academic Years</li>
+        </ol></nav>
+    </div>
+    <a href="/AcademicYears/Create" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Add Year</a>
+</div>
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="table-card">
+            <div class="table-header"><h6 class="mb-0 fw-bold">Academic Years</h6></div>
+            @if (Model.Any())
+            {
+                <table class="table">
+                    <thead><tr><th>YEAR NAME</th><th>START DATE</th><th>END DATE</th><th>STATUS</th><th>ACTIONS</th></tr></thead>
+                    <tbody>
+                        @foreach (var y in Model)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@y.Name</td>
+                                <td>@y.StartDate.ToString("dd MMM yyyy")</td>
+                                <td>@y.EndDate.ToString("dd MMM yyyy")</td>
+                                <td>
+                                    @if (y.IsCurrentYear)
+                                    {
+                                        <span class="badge bg-success"><i class="fas fa-check me-1"></i>Current Year</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">@(y.IsActive ? "Active" : "Inactive")</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        @if (!y.IsCurrentYear)
+                                        {
+                                            <form asp-action="SetCurrent" method="post" style="display:inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@y.Id"/>
+                                                <button type="submit" class="btn btn-sm btn-outline-success"
+                                                        data-confirm="Set '@y.Name' as current academic year?">
+                                                    <i class="fas fa-check me-1"></i>Set Current
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="fas fa-calendar-times fa-3x mb-3 d-block opacity-25"></i>
+                    <h5>No academic years defined</h5>
+                    <a href="/AcademicYears/Create" class="btn btn-primary mt-2">Add Academic Year</a>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header"><i class="fas fa-plus me-2 text-primary"></i>Add Academic Year</div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label class="form-label">Year Name *</label>
+                        <input name="Name" class="form-control" placeholder="e.g., 2025-2026" required/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Start Date *</label>
+                        <input name="StartDate" type="date" class="form-control" required/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">End Date *</label>
+                        <input name="EndDate" type="date" class="form-control" required/>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input name="IsCurrentYear" type="checkbox" class="form-check-input" id="isCurrent" value="true"/>
+                            <label class="form-check-label" for="isCurrent">Set as current year</label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-save me-2"></i>Save Academic Year
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

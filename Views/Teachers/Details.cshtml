@@ -1,0 +1,74 @@
+@model SchoolManagementSystem.Models.Teacher
+@{
+    ViewData["Title"] = "Teacher Profile";
+}
+<div class="page-header">
+    <div>
+        <h1><i class="fas fa-user-tie me-2 text-primary"></i>Teacher Profile</h1>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/Teachers">Teachers</a></li>
+            <li class="breadcrumb-item active">@Model.FullName</li>
+        </ol></nav>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="/Teachers/Edit/@Model.Id" class="btn btn-outline-primary"><i class="fas fa-edit me-2"></i>Edit</a>
+    </div>
+</div>
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card text-center mb-4">
+            <div class="card-body py-4">
+                <div class="avatar avatar-lg mx-auto mb-3" style="width:80px;height:80px;font-size:2rem;border-radius:20px;">
+                    @Model.FirstName[0]
+                </div>
+                <h4 class="fw-bold mb-1">@Model.FullName</h4>
+                <div class="text-muted mb-1">@Model.Designation</div>
+                <div class="text-muted small mb-3">@Model.Department</div>
+                <span class="badge @(Model.Status == "Active" ? "badge-status-active" : "badge-status-inactive") fs-6">@Model.Status</span>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header"><i class="fas fa-info-circle me-2 text-primary"></i>Quick Info</div>
+            <ul class="list-group list-group-flush">
+                @foreach (var item in new[] {
+                    ("fa-id-badge", "Employee ID", Model.EmployeeId),
+                    ("fa-envelope", "Email", Model.Email),
+                    ("fa-phone", "Phone", Model.Phone ?? "-"),
+                    ("fa-venus-mars", "Gender", Model.Gender ?? "-"),
+                    ("fa-tint", "Blood Group", Model.BloodGroup ?? "-"),
+                    ("fa-graduation-cap", "Qualification", Model.Qualification ?? "-"),
+                    ("fa-star", "Specialization", Model.Specialization ?? "-"),
+                    ("fa-calendar", "Joining Date", Model.JoiningDate.ToString("dd MMM yyyy"))
+                })
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-4">
+                        <span class="text-muted small"><i class="fas @item.Item1 me-2"></i>@item.Item2</span>
+                        <span class="small fw-semibold text-truncate ms-2" style="max-width:150px;">@item.Item3</span>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header"><i class="fas fa-money-bill me-2 text-primary"></i>Compensation</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4 text-center">
+                        <div class="fw-bold fs-3 text-success">৳@Model.Salary.ToString("N0")</div>
+                        <div class="text-muted small">Monthly Salary</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header"><i class="fas fa-bolt me-2 text-primary"></i>Quick Actions</div>
+            <div class="card-body">
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="/Teachers/Edit/@Model.Id" class="btn btn-outline-primary"><i class="fas fa-edit me-2"></i>Edit Profile</a>
+                    <a href="/Attendance?teacherId=@Model.Id" class="btn btn-outline-secondary"><i class="fas fa-clipboard-check me-2"></i>Attendance</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,172 @@
+@model SchoolManagementSystem.Models.FeePayment
+@{
+    ViewData["Title"] = "Collect Fee";
+    var classes = ViewBag.Classes as List<SchoolManagementSystem.Models.Class> ?? new();
+    var structures = ViewBag.Structures as List<SchoolManagementSystem.Models.FeeStructure> ?? new();
+}
+<div class="page-header">
+    <div>
+        <h1><i class="fas fa-money-bill-wave me-2 text-primary"></i>Collect Fee</h1>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="/Dashboard">Dashboard</a></li><li class="breadcrumb-item"><a href="/Fees">Fees</a></li><li class="breadcrumb-item active">Collect</li></ol></nav>
+    </div>
+</div>
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header"><i class="fas fa-search me-2 text-primary"></i>Find Student</div>
+            <div class="card-body">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Class</label>
+                        <select class="form-select" id="classFilter">
+                            <option value="">-- All Classes --</option>
+                            @foreach (var c in classes) { <option value="@c.Id">@c.Name</option> }
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Search Student</label>
+                        <input type="text" class="form-control" id="studentSearch" placeholder="Name or Admission No..."/>
+                    </div>
+                </div>
+                <div id="studentResults" class="d-none">
+                    <div class="border rounded p-3 bg-light" id="selectedStudent">
+                        <!-- Student info appears here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header"><i class="fas fa-receipt me-2 text-primary"></i>Payment Details</div>
+            <div class="card-body">
+                <form asp-action="Collect" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="StudentId" id="hiddenStudentId"/>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Fee Structure</label>
+                            <select asp-for="FeeStructureId" class="form-select" id="feeStructureSelect" onchange="loadFeeAmount()">
+                                <option value="">-- Select Structure --</option>
+                                @foreach (var s in structures)
+                                {
+                                    <option value="@s.Id" data-amount="@s.TotalAmount">@s.Name (৳@s.TotalAmount.ToString("N0"))</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Month</label>
+                            <select asp-for="Month" class="form-select">
+                                @foreach (var m in System.Globalization.DateTimeFormatInfo.CurrentInfo.MonthNames.Where(m => !string.IsNullOrEmpty(m)))
+                                { <option value="@m" selected="@(m == DateTime.Now.ToString("MMMM"))">@m</option> }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Total Amount (৳)</label>
+                            <input asp-for="TotalAmount" type="number" class="form-control" id="TotalAmount" placeholder="0.00" step="0.01"/>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Discount (৳)</label>
+                            <input asp-for="DiscountAmount" type="number" class="form-control" id="DiscountAmount" placeholder="0.00" step="0.01" value="0"/>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Fine/Late Fee (৳)</label>
+                            <input asp-for="FineAmount" type="number" class="form-control" placeholder="0.00" step="0.01" value="0"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Amount Paid (৳) *</label>
+                            <input asp-for="PaidAmount" type="number" class="form-control form-control-lg" id="PaidAmount" placeholder="0.00" step="0.01" required/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Due Amount (৳)</label>
+                            <input asp-for="DueAmount" type="number" class="form-control form-control-lg" id="DueAmount" placeholder="0.00" readonly/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Payment Method</label>
+                            <select asp-for="PaymentMethod" class="form-select">
+                                @foreach (var m in new[] { "Cash", "Bank Transfer", "Cheque", "Mobile Banking", "Online" })
+                                { <option value="@m">@m</option> }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Transaction ID</label>
+                            <input asp-for="TransactionId" class="form-control" placeholder="Optional"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Payment Date</label>
+                            <input asp-for="PaymentDate" type="date" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")"/>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Remarks</label>
+                            <textarea asp-for="Remarks" class="form-control" rows="2" placeholder="Optional notes..."></textarea>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex gap-3 justify-content-end">
+                                <a href="/Fees" class="btn btn-outline-secondary"><i class="fas fa-times me-2"></i>Cancel</a>
+                                <button type="submit" class="btn btn-success btn-lg"><i class="fas fa-check me-2"></i>Collect Payment & Print Receipt</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card sticky-top" style="top:80px;">
+            <div class="card-header"><i class="fas fa-calculator me-2 text-primary"></i>Summary</div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between py-2 border-bottom"><span>Total Fee</span><span class="fw-bold" id="sumTotal">৳0</span></div>
+                <div class="d-flex justify-content-between py-2 border-bottom text-success"><span>Discount</span><span class="fw-bold" id="sumDiscount">- ৳0</span></div>
+                <div class="d-flex justify-content-between py-2 border-bottom text-warning"><span>Fine</span><span class="fw-bold" id="sumFine">+ ৳0</span></div>
+                <div class="d-flex justify-content-between py-2 border-bottom text-primary fw-bold"><span>Net Payable</span><span id="sumNet">৳0</span></div>
+                <div class="d-flex justify-content-between py-2 border-bottom text-success fw-bold"><span>Amount Paid</span><span id="sumPaid">৳0</span></div>
+                <div class="d-flex justify-content-between py-2 fw-bold fs-5 text-danger"><span>Balance Due</span><span id="sumDue">৳0</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+function loadFeeAmount() {
+    const sel = document.getElementById('feeStructureSelect');
+    const amount = sel.options[sel.selectedIndex]?.getAttribute('data-amount') || '0';
+    document.getElementById('TotalAmount').value = amount;
+    updateSummary();
+}
+function updateSummary() {
+    const total = parseFloat(document.getElementById('TotalAmount')?.value) || 0;
+    const discount = parseFloat(document.getElementById('DiscountAmount')?.value) || 0;
+    const paid = parseFloat(document.getElementById('PaidAmount')?.value) || 0;
+    const net = total - discount;
+    const due = Math.max(0, net - paid);
+    document.getElementById('DueAmount').value = due.toFixed(2);
+    document.getElementById('sumTotal').textContent = '৳' + total.toLocaleString();
+    document.getElementById('sumDiscount').textContent = '- ৳' + discount.toLocaleString();
+    document.getElementById('sumNet').textContent = '৳' + net.toLocaleString();
+    document.getElementById('sumPaid').textContent = '৳' + paid.toLocaleString();
+    document.getElementById('sumDue').textContent = '৳' + due.toLocaleString();
+}
+document.getElementById('TotalAmount')?.addEventListener('input', updateSummary);
+document.getElementById('DiscountAmount')?.addEventListener('input', updateSummary);
+document.getElementById('PaidAmount')?.addEventListener('input', updateSummary);
+
+// Student search
+let searchTimer;
+document.getElementById('studentSearch')?.addEventListener('input', function () {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(async () => {
+        const q = this.value.trim();
+        if (q.length < 2) return;
+        const resp = await fetch(`/Students/Search?q=${encodeURIComponent(q)}`);
+        const data = await resp.json();
+        if (data.length) {
+            const s = data[0];
+            document.getElementById('hiddenStudentId').value = s.id;
+            document.getElementById('selectedStudent').innerHTML = `<div class="d-flex align-items-center gap-3">
+                <div class="avatar">${s.name[0]}</div>
+                <div><div class="fw-bold">${s.name}</div><div class="text-muted small">${s.admissionNo}</div></div>
+                <i class="fas fa-check-circle text-success ms-auto"></i>
+            </div>`;
+            document.getElementById('studentResults').classList.remove('d-none');
+        }
+    }, 400);
+});
+</script>
